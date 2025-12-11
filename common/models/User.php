@@ -100,6 +100,21 @@ class User extends ActiveRecord implements IdentityInterface
         return $this->hasMany(Technicianinfo::class, ['userID' => 'id']);
     }
 
+    public function isTechnician()
+    {
+        // Se existir a relação plural (hasMany), usamos um exists() eficiente no BD
+        if (method_exists($this, 'getTechnicianinfos')) {
+            return $this->getTechnicianinfos()->exists();
+        }
+
+        // fallback para a relação singular
+        if (method_exists($this, 'getTechnicianinfo')) {
+            return $this->getTechnicianinfo()->exists();
+        }
+
+        return false;
+    }
+
     /**
      * Gets query for [[Userprofile]].
      *
