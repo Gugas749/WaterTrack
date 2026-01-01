@@ -31,37 +31,39 @@ class MeterController extends Controller
             ],
         ];
     }
+
     public function actionIndex()
     {
+        // $changeStatus = Yii::$app->request->get('s');
         $search = Yii::$app->request->get('q');
-        $searchQuery = \common\models\Meter::find();
-        $meterIdParam = Yii::$app->request->get('id');
+        $detail = Yii::$app->request->get('id');
+
+        $query = \common\models\Meter::find();
 
         $detailMeter = null;
 
-        //limpar search
+        // Clean empty search
         if ($search !== null && trim($search) === '') {
             return $this->redirect(['index']);
         }
-
-        //simple search
+        // Apply search filter
         if ($search) {
-            $searchQuery->andWhere(['like', 'address', $search]);
+            $query->andWhere(['like', 'address', $search]);
         }
-        $meters = $searchQuery->all();
+        $meters = $query->all();
 
-        if ($meterIdParam !== null) {
-            $detailMeter = Meter::findOne($meterIdParam);
+        if($detail){
+            $detailMeter = Meter::findOne($detail);
         }
 
         return $this->render('index', [
             'meters' => $meters,
             'search' => $search,
-            'addMeterModel' => new Addmeterform(),
-            'detailMeter' => $detailMeter,
-            'meterTypes' => Metertype::find()->all(),
+            'addMeterModel' => new AddMeterForm(),
+            'meterTypes' => MeterType::find()->all(),
             'enterprises' => Enterprise::find()->all(),
             'users' => User::find()->all(),
+            'detailMeter' => $detailMeter,
         ]);
     }
 
@@ -105,19 +107,21 @@ class MeterController extends Controller
     public function actionUpdateState($id)
     {
         if (Yii::$app->request->isPost) {
-            $meter = Meter::findOne($id);
-            $meter->state = Yii::$app->request->post('state');
-            $meter->save(false);
+            $post = Yii::$app->request->post();
 
-            Yii::$app->session->setFlash('success', 'Contador atualizado com sucesso!');
-
-            if (Yii::$app->request->isPjax) {
-                return $this->renderAjax('index', [
-                    'meters' => Meter::find()->all(),
-                ]);
+            if (isset($id, $post['state'])) {
+                $meter = Meter::findOne($id);
+                if ($meter) {
+                    $meter->state = (int)$post['state'];
+                    $meter->save(false);
+                    Yii::$app->session->setFlash('success', 'Contador atualizado com sucesso!');
+                    return $this->redirect(['index']);
+                }
             }
-
-            return $this->redirect(['index']);
         }
+
+        return $this->render('index', [
+            'meter' => $meter
+        ]);
     }
 }

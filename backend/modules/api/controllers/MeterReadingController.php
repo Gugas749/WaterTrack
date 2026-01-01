@@ -23,7 +23,7 @@ class MeterReadingController extends ActiveController
     public function actionFrommeter($id)
     {
         $model = new $this->modelClass;
-        $recs = $model::find()->where(['meterID' => $id])->one();
+        $recs = $model::find()->where(['meterID' => $id])->all();
 
         if (!$recs) {
             return ['error' => 'Readings not found'];

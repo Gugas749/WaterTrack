@@ -1,11 +1,9 @@
 <?php
-/** @var yii\bootstrap5\ActiveForm $form */
 
 use yii\bootstrap5\Html;
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
-use kartik\select2\Select2;
 use yii\widgets\Pjax;
 
 // PAGE SETTINGS
@@ -23,7 +21,6 @@ $classOptions = [
         'C' => 'Classe C',
         'D' => 'Classe D',
 ];
-
 $measureUnityOptions = [
         '1' => 'm^3',
         '2' => 'm^3/h',
@@ -32,19 +29,16 @@ $measureUnityOptions = [
         '5' => 'Litros',
         '6' => 'Decilitros',
 ];
-
 $stateOptions = [
         '1' => 'ATIVO',
         '2' => 'COM PROBLEMA',
         '0' => 'INATIVO',
 ];
-
 $statusClasses = [
         1 => 'text-success',
         2 => 'text-warning',
         0 => 'text-danger',
 ];
-
 $stateClasses = [
         1 => 'bg-success',
         2 => 'bg-warning',
@@ -125,11 +119,9 @@ $statusText = match ($meter->state ?? null) {
         <!-- TABLE -->
         <div class="card shadow-sm border-0 mx-3" style="border-radius:16px;">
             <div class="card-body">
-
                 <h6 class="fw-bold text-secondary mb-3">
                     Total de Contadores: <?= count($meters) ?>
                 </h6>
-
                 <div class="table-responsive">
                     <table class="table align-middle">
                         <thead class="text-muted small">
@@ -141,7 +133,6 @@ $statusText = match ($meter->state ?? null) {
                             <th></th>
                         </tr>
                         </thead>
-
                         <tbody>
                         <?php if (!empty($meters)): ?>
                             <?php foreach ($meters as $meter): ?>
@@ -159,9 +150,6 @@ $statusText = match ($meter->state ?? null) {
 
                                     <td>
                                         <?php $form = \yii\widgets\ActiveForm::begin([
-                                                'options' => [
-                                                        'data' => ['pjax' => true]  // critical
-                                                ],
                                                 'action' => ['update-state', 'id' => $meter->id],
                                                 'method' => 'post'
                                         ]); ?>
@@ -172,7 +160,7 @@ $statusText = match ($meter->state ?? null) {
                                                 $stateOptions,
                                                 [
                                                         'class' => 'form-select form-select-sm fw-bold ' . ($statusClasses[$meter->state] ?? 'text-muted'),
-                                                        'onchange' => '$("#metersTable form").submit();',
+                                                        'onchange' => 'this.form.submit()',
                                                         'options' => [
                                                                 1 => ['class' => 'text-success'],
                                                                 2 => ['class' => 'text-warning'],
@@ -188,9 +176,11 @@ $statusText = match ($meter->state ?? null) {
                                         <?= Html::button('Ver Detalhes', [
                                                 'class' => 'btn btn-outline-primary btn-sm fw-semibold shadow-sm',
                                                 'onclick' => "window.location.href='" . Url::to(['meter/index', 'id' => $meter->id]) . "'",
+                                                'style' => 'transition:0.2s;',
+                                                'onmouseover' => "this.style.transform='scale(1.05)'",
+                                                'onmouseout'  => "this.style.transform='scale(1)'",
                                         ]) ?>
                                     </td>
-
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -199,10 +189,8 @@ $statusText = match ($meter->state ?? null) {
                             </tr>
                         <?php endif; ?>
                         </tbody>
-
                     </table>
                 </div>
-
             </div>
         </div>
         <?php Pjax::end(); ?>
@@ -307,14 +295,14 @@ $statusText = match ($meter->state ?? null) {
                             <?= $form->field($detailMeter, 'state')->dropDownList(
                                     $stateOptions,
                                     [
-                                        'id' => 'meter-status-dropdown',
-                                        'class' => 'form-select fw-bold ' . ($statusClasses[$detailMeter->state] ?? 'text-muted'),
-                                        'options' => [
-                                        1 => ['class' => 'text-success'],
-                                        2 => ['class' => 'text-warning'],
-                                        0 => ['class' => 'text-danger'],
-                                    ]
-                            ])->label('Estado') ?>
+                                            'id' => 'meter-status-dropdown',
+                                            'class' => 'form-select fw-bold ' . ($statusClasses[$detailMeter->state] ?? 'text-muted'),
+                                            'options' => [
+                                                    1 => ['class' => 'text-success'],
+                                                    2 => ['class' => 'text-warning'],
+                                                    0 => ['class' => 'text-danger'],
+                                            ]
+                                    ])->label('Estado') ?>
                         </div>
                     </div>
 
@@ -391,6 +379,8 @@ $statusText = match ($meter->state ?? null) {
                 });
             </script>
         <?php endif; ?>
+
+
         <!-- OVERLAY -->
         <div id="overlay"></div>
     </div>
@@ -398,29 +388,30 @@ $statusText = match ($meter->state ?? null) {
 
 <script>
     $(document).on('pjax:end', function() {
+        // Update state dropdown colors after PJAX reload
+        $('.meter-state-dropdown').each(function() {
+            const val = $(this).val();
+            const classes = { 1:'text-success', 2:'text-warning', 0:'text-danger' };
+            $(this).removeClass('text-success text-warning text-danger')
+                .addClass(classes[val] || 'text-muted');
+        });
+
+        // Show flash messages
         $('#flash-container .toast').each(function() {
             const toastEl = this;
             const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
             toast.show();
         });
-
-        autoHideFlashes();
     });
 
-    // Function to auto-hide flash messages
-    function autoHideFlashes() {
-        const toasts = document.querySelectorAll('#flash-container .toast.show');
-        toasts.forEach(toast => {
-            setTimeout(() => {
-                // Fade out
-                toast.classList.remove('show');
-                toast.style.transition = 'opacity 0.5s';
-                toast.style.opacity = '0';
-                // Remove from DOM after fade-out
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', autoHideFlashes);
+    $(document).on('change', 'select[name="state"]', function() {
+        const val = $(this).val();
+        const classes = {
+            1: 'text-success',
+            2: 'text-warning',
+            0: 'text-danger'
+        };
+        $(this).removeClass('text-success text-warning text-danger')
+            .addClass(classes[val] || 'text-muted');
+    });
 </script>
