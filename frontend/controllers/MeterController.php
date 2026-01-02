@@ -63,21 +63,26 @@ class MeterController extends Controller
 
     public function actionCreate()
     {
-        // apenas técnicos podem criar
-        if (!Yii::$app->user->identity->isTechnician()) {
+        $user = Yii::$app->user->identity;
+
+        if (!$user->isTechnician()) {
             throw new ForbiddenHttpException('Sem permissão para criar contadores.');
         }
 
         $model = new Meter();
+        //$model->userID = $user->id;
+        $model->state = 1;        // ATIVO por padrão
+        $model->meterTypeID = 1;  // exemplo
+        $model->enterpriseID = 1; // exemplo
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             Yii::$app->session->setFlash('success', 'Contador criado com sucesso!');
+            return $this->redirect(['index', 'id' => $model->id]);
+        } else {
+            // mostra erros para debugging
+            Yii::$app->session->setFlash('error', 'Falha ao criar contador: ' . json_encode($model->errors));
             return $this->redirect(['index']);
         }
-
-        // se falhar, re-render index (poderias devolver erros via session/flashes)
-        Yii::$app->session->setFlash('error', 'Falha ao criar contador.');
-        return $this->redirect(['index']);
     }
 
     public function actionUpdate($id)
