@@ -163,47 +163,59 @@ $problemTypeOptions = [
                         </button>
                     </div>
 
-                    <?php if ($isTechnician): ?>
-                        <?php $form = ActiveForm::begin([
+
+                    <?php
+                    if (!empty($isTechnician) && $isTechnician) {
+                        $form = ActiveForm::begin([
                             'action' => ['report/update', 'id' => $detailReport->id],
                             'method' => 'post'
-                        ]); ?>
-                    <?php endif; ?>
-
-                    <?= $isTechnician
-                        ? $form->field($detailReport, 'problemType')
-                        : Html::input('text', null, $detailReport->problemType,
-                            ['class'=>'form-control mb-3', 'readonly'=>true])
+                        ]);
+                    }
                     ?>
 
-                    <?= $isTechnician
-                        ? $form->field($detailReport, 'desc')->textarea(['rows' => 4])
-                        : Html::textarea(null, $detailReport->desc,
-                            ['class'=>'form-control', 'readonly'=>true])
-                    ?>
 
-                    <?php if ($isTechnician): ?>
-                        <div class="d-flex justify-content-end mt-3">
-                            <button class="btn btn-light" onclick="closePanels()">Fechar</button>
-                            <?= Html::submitButton('Salvar', ['class'=>'btn btn-danger']) ?>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-4">
+                            <label class="form-label">Leitura</label>
+                            <?= !empty($form)
+                                ? $form->field($detailReport, 'problemType')->label(false)
+                                : Html::input('text', null, $detailReport->problemType, ['class'=>'form-control mb-3', 'readonly'=>true])?>
                         </div>
-                        <?php ActiveForm::end(); ?>
-                    <?php endif; ?>
+
+                        <div class="col-md-4">
+                            <label class="form-label">Consumo</label>
+                            <?= !empty($form)
+                                ? $form->field($detailReport, 'desc')->textarea(['rows' => 4])->label(false)
+                                : Html::textarea(null, $detailReport->desc, ['class'=>'form-control', 'readonly'=>true])?>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <button class="btn btn-light" onclick="closePanels()">Fechar</button>
+                        <?php if (!empty($form)): ?>
+                            <?= Html::submitButton('Salvar', ['class'=>'btn btn-danger']) ?>
+                        <?php endif; ?>
+                    </div>
+
+                    <?php if (!empty($form)) ActiveForm::end(); ?>
 
                 </div>
             </div>
-
             <script>
                 function closePanels() {
                     window.location.href = '<?= Url::to(['report/index']) ?>';
                 }
 
                 document.addEventListener('DOMContentLoaded', () => {
-                    const overlay = document.getElementById('overlay');
+                    // mostra overlay e painel só se existirem
+                    var overlay = document.getElementById('overlay');
+                    var detail = document.getElementById('detailPanel');
                     if (overlay) overlay.style.display = 'block';
+                    if (detail) detail.style.display = 'block';
                     document.body.style.overflow = 'hidden';
                 });
             </script>
+
         <?php endif; ?>
 
         <div id="overlay"></div>
