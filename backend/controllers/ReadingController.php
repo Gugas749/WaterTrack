@@ -87,7 +87,6 @@ class ReadingController extends \yii\web\Controller
             'selectedEnterpriseId' => $enterpriseID,
             'selectedMeterId' => $meterID,
             'enterpriseItems' => \yii\helpers\ArrayHelper::map($enterprises, 'id', 'name'),
-
             'detailReading' => $detailReading,
             'technician' => $technician,
             'selectedDetailsProblem' => $selectedDetailsProblem,

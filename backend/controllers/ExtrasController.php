@@ -33,7 +33,7 @@ class ExtrasController extends Controller
         $search = Yii::$app->request->get('q');
         $detail = Yii::$app->request->get('id');
 
-        $query = \common\models\Metertype::find();
+        $query = Metertype::find();
         $detailMeterTypes = null;
 
         // Clean empty search
@@ -47,7 +47,7 @@ class ExtrasController extends Controller
         $meterTypes = $query->all();
 
         if($detail){
-            $detailMeterTypes = Meter::findOne($detail);
+            $detailMeterTypes = Metertype::findOne($detail);
         }
 
         return $this->render('index', [

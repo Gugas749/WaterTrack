@@ -80,10 +80,6 @@ $statusClass = match ($readingType) {
 
                 <?php ActiveForm::end(); ?>
 
-                <!-- Action -->
-                <button class="btn btn-primary rounded-4" style="background-color:#4f46e5; border:none;">
-                    <i class="fas fa-sync me-1"></i>
-                </button>
                 <!-- Open Panel Button -->
                 <button class="btn btn-primary"
                         data-toggle="right-panel"
@@ -209,24 +205,26 @@ $statusClass = match ($readingType) {
                             <?= $form->field($detailReading, 'id')->textInput(['readonly' => true, 'id' => 'detailReadingId'])->label('Referência') ?>
                         </div>
                         <div class="col-md-4">
-                            <input id="detailTechnician" class="form-control" readonly
-                                   value="<?= htmlspecialchars($technician->username ?? '') ?>" placeholder="Técnico">
+                            <?= $form->field($detailReading, 'userID')->textInput([
+                                    'value' => htmlspecialchars($technician->username ?? '')
+                            ])->label('Username') ?>
                         </div>
                         <div class="col-md-5">
-                            <input id="detailMeterAddress" class="form-control" readonly
-                                   value="<?= htmlspecialchars($detailReading->meter->address ?? '') ?>" placeholder="Contador">
+                            <?= $form->field($detailReading, 'meterID')->textInput([
+                                    'value' => htmlspecialchars($detailReading->meter->address ?? '')
+                            ])->label('Morada do Contador') ?>
                         </div>
                         <div class="col-md-4">
-                            <?= $form->field($detailReading, 'reading')->textInput(['readonly' => true, 'id' => 'detailReadingValue'])->label('Leitura') ?>
+                            <?= $form->field($detailReading, 'reading')->textInput(['id' => 'detailReadingValue'])->label('Leitura') ?>
                         </div>
                         <div class="col-md-4">
-                            <?= $form->field($detailReading, 'accumulatedConsumption')->textInput(['readonly' => true, 'id' => 'detailAccumulatedConsumption'])->label('Consumo acumulado') ?>
+                            <?= $form->field($detailReading, 'accumulatedConsumption')->textInput(['id' => 'detailAccumulatedConsumption'])->label('Consumo acumulado') ?>
                         </div>
                         <div class="col-md-3">
-                            <?= $form->field($detailReading, 'waterPressure')->textInput(['readonly' => true, 'id' => 'detailWaterPressure'])->label('Pressão da Água') ?>
+                            <?= $form->field($detailReading, 'waterPressure')->textInput(['id' => 'detailWaterPressure'])->label('Pressão da Água') ?>
                         </div>
                         <div class="col-md-11">
-                            <?= $form->field($detailReading, 'desc')->textInput(['readonly' => true, 'id' => 'detailDesc'])->label('Descrição') ?>
+                            <?= $form->field($detailReading, 'desc')->textInput(['id' => 'detailDesc'])->label('Descrição') ?>
                         </div>
                         <div class="col-md-3">
                             <?= $form->field($detailReading, 'date')->textInput(['readonly' => true, 'id' => 'detailDate'])->label('Data') ?>
