@@ -30,28 +30,29 @@ class ExtrasController extends Controller
 
     public function actionIndex()
     {
-        $queryParam = Yii::$app->request->get('q');
-        $extrasIdParam = Yii::$app->request->get('id');
-        $meterTypes = Metertype::find()->all();
+        $search = Yii::$app->request->get('q');
+        $detail = Yii::$app->request->get('id');
+
+        $query = \common\models\Metertype::find();
         $detailMeterTypes = null;
 
-        //limpar os parametros da url
-        if ($queryParam !== null && trim($queryParam) === '') {
+        // Clean empty search
+        if ($search !== null && trim($search) === '') {
             return $this->redirect(['index']);
         }
-
-        //filtrar
-        if (!empty($queryParam)) {
-            $meterTypes = array_filter($meterTypes, function ($search) use ($queryParam) {
-                return stripos($search->description, $queryParam) !== false;
-            });
+        // Apply search filter
+        if ($search) {
+            $query->andWhere(['like', 'description', $search]);
         }
-        if ($extrasIdParam !== null) {
-            $detailMeterTypes = Metertype::findOne($extrasIdParam);
+        $meterTypes = $query->all();
+
+        if($detail){
+            $detailMeterTypes = Meter::findOne($detail);
         }
 
         return $this->render('index', [
             'meterTypes' => $meterTypes,
+            'search' => $search,
             'addMeterTypeModel' => new Addmetertypeform(),
             'detailMeterTypes' => $detailMeterTypes,
         ]);

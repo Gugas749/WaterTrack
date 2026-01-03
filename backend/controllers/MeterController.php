@@ -39,7 +39,6 @@ class MeterController extends Controller
         $detail = Yii::$app->request->get('id');
 
         $query = \common\models\Meter::find();
-
         $detailMeter = null;
 
         // Clean empty search

@@ -5,6 +5,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 use common\models\Enterprise;
 use common\models\Userprofile;
+use yii\widgets\Pjax;
 
 $this->title = 'Utilizadores';
 $this->params['breadcrumbs'][] = $this->title;
@@ -54,6 +55,11 @@ $statusClass = match ($user->status ?? null) {
 
 <div class="content">
     <div class="container-fluid py-4" style="background-color:#f9fafb; min-height:100vh;">
+        <?php Pjax::begin([
+                'id' => 'metersTable',
+                'timeout' => 5000,
+                'enablePushState' => false, // important
+        ]); ?>
         <!-- NAVIGATION? -->
         <div class="d-flex justify-content-between align-items-center mb-4 px-3">
             <h4 class="fw-bold text-dark">Utilizadores</h4>
@@ -63,13 +69,12 @@ $statusClass = match ($user->status ?? null) {
                     <?php $form = ActiveForm::begin([
                             'method' => 'get',
                             'action' => ['user/index'],
-                            'options' => ['class' => 'd-flex align-items-center w-100'],
+                            'options' => ['data' => ['pjax' => true], 'class' => 'd-flex align-items-center w-100'],
                     ]); ?>
-                    <input type="text"
-                           name="q"
+                    <input type="text" name="q"
                            class="form-control form-control-sm ps-3 pe-5"
                            placeholder="Search"
-                           value="<?= Html::encode(Yii::$app->request->get('q')) ?>"
+                           value="<?= Html::encode($search) ?>"
                            style="border:1px solid #e5e7eb;">
                     <button type="submit" class="input-group-text bg-transparent border-0 text-muted"
                             style="position:absolute; right:10px; top:50%; transform:translateY(-50%);">
@@ -187,6 +192,8 @@ $statusClass = match ($user->status ?? null) {
                 </div>
             </div>
         </div>
+        <?php Pjax::end(); ?>
+
         <!-- RIGHT ADD PANEL -->
         <div id="rightPanel" class="right-panel bg-white shadow" style="display:none;">
             <div class="right-panel-header d-flex justify-content-between align-items-center p-3 border-bottom">

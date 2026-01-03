@@ -1,10 +1,8 @@
 <?php
-/** @var yii\bootstrap5\ActiveForm $form */
-/** @var yii\web\View $this */
-
 use yii\bootstrap5\Html;
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\Url;
+use yii\widgets\Pjax;
 
 $this->title = 'Empresas';
 $this->params['breadcrumbs'][] = $this->title;
@@ -14,6 +12,11 @@ $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\Bo
 ?>
 <div class="content">
     <div class="container-fluid py-4" style="background-color:#f9fafb; min-height:100vh;">
+        <?php Pjax::begin([
+                'id' => 'metersTable',
+                'timeout' => 5000,
+                'enablePushState' => false, // important
+        ]); ?>
         <!-- NAVIGATION? -->
         <div class="d-flex justify-content-between align-items-center mb-4 px-3">
             <h4 class="fw-bold text-dark">Empresas</h4>
@@ -23,13 +26,12 @@ $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\Bo
                     <?php $form = ActiveForm::begin([
                             'method' => 'get',
                             'action' => ['enterprise/index'],
-                            'options' => ['class' => 'd-flex align-items-center w-100'],
+                            'options' => ['data' => ['pjax' => true], 'class' => 'd-flex align-items-center w-100'],
                     ]); ?>
-                    <input type="text"
-                           name="q"
+                    <input type="text" name="q"
                            class="form-control form-control-sm ps-3 pe-5"
                            placeholder="Search"
-                           value="<?= Html::encode(Yii::$app->request->get('q')) ?>"
+                           value="<?= Html::encode($search) ?>"
                            style="border:1px solid #e5e7eb;">
                     <button type="submit" class="input-group-text bg-transparent border-0 text-muted"
                             style="position:absolute; right:10px; top:50%; transform:translateY(-50%);">
@@ -118,6 +120,7 @@ $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\Bo
                 </div>
             </div>
         </div>
+        <?php Pjax::end(); ?>
         <!-- RIGHT ADD PANEL -->
         <div id="rightPanel" class="right-panel bg-white shadow" style="display:none;">
             <div class="right-panel-header d-flex justify-content-between align-items-center p-3 border-bottom">

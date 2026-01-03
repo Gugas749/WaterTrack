@@ -11,6 +11,7 @@ use common\models\Technicianinfo;
 use common\models\User;
 use common\models\Userprofile;
 use Yii;
+use yii\helpers\ArrayHelper;
 
 class ReadingController extends \yii\web\Controller
 {
@@ -33,104 +34,63 @@ class ReadingController extends \yii\web\Controller
     }
     public function actionIndex()
     {
-        $queryParam = Yii::$app->request->get('q');
+        //$queryParam = Yii::$app->request->get('q');
         $readingIdParam = Yii::$app->request->get('id');
+        $enterpriseID = Yii::$app->request->get('enterprise_id');
+        $meterID = Yii::$app->request->get('meter_id');
+
+        $enterpriseID = $enterpriseID !== '' ? $enterpriseID : null;
+        $meterID = $meterID !== '' ? $meterID : null;
 
         $detailReading = null;
         $technician = null;
-        $meter = null;
-        $problem = null;
+        $selectedDetailsProblem = null;
+        $meterItems = null;
 
         $enterprises = Enterprise::find()->all();
-
-        if ($queryParam !== null && trim($queryParam) === '') {
-            return $this->redirect(['index']);
-        }
+        $readings = Meterreading::find()->all();
 
         if ($readingIdParam !== null) {
-            $detailReading = Meterreading::find()
-                ->where(['id' => $readingIdParam])
-                ->one();
+            $detailReading = Meterreading::find()->where(['id' => $readingIdParam])->one();
 
             if ($detailReading) {
                 $technician = User::find()->where(['id' => $detailReading->userID])->one();
-                $meter = Meter::find()->where(['id' => $detailReading->meterID])->one();
-                $problem = Meterproblem::find()->where(['id' => $detailReading->problemID])->one();
+                $selectedDetailsProblem = Meterproblem::find()->where(['id' => $detailReading->problemID])->one();
             }
         }
 
+        // DROPDOWN EMPRESAS SELECTION
+        if($enterpriseID !== null){
+            $readings = [];
+
+            $meters = Meter::find()->where(['enterpriseID' => $enterpriseID])->all();
+            foreach ($meters as $meter) {
+                $readings = array_merge(
+                    $readings,
+                    Meterreading::find()->where(['meterID' => $meter->id])->all()
+                );
+            }
+
+            $meterItems = \yii\helpers\ArrayHelper::map($meters, 'id', 'address');
+        }
+
+        if($enterpriseID !== null && $meterID !== null){
+            $readings = [];
+            $readings = Meterreading::find()->andWhere(['like', 'meterID', $meterID])->all();
+        }
+
+
         return $this->render('index', [
             'users' => User::find()->all(),
-            'enterpriseList' => $enterprises,
+            'readings' => $readings,
+            'meterItems' => $meterItems,
+            'selectedEnterpriseId' => $enterpriseID,
+            'selectedMeterId' => $meterID,
+            'enterpriseItems' => \yii\helpers\ArrayHelper::map($enterprises, 'id', 'name'),
+
             'detailReading' => $detailReading,
             'technician' => $technician,
-            'meter' => $meter,
-            'problem' => $problem,
-            'enterpriseItems' => \yii\helpers\ArrayHelper::map($enterprises, 'id', 'name'),
+            'selectedDetailsProblem' => $selectedDetailsProblem,
         ]);
-    }
-
-    public function actionGetMeters($enterpriseID)
-    {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        $items = Meter::find()
-            ->where(['enterpriseID' => $enterpriseID])
-            ->all();
-
-        return array_map(function ($item) {
-            return [
-                'id' => $item->id,
-                'name' => $item->address,
-            ];
-        }, $items);
-    }
-    public function actionGetReadings($meterID)
-    {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        $readings = Meterreading::find()
-            ->where(['meterID' => $meterID])
-            ->orderBy(['date' => SORT_DESC])
-            ->all();
-
-        return array_map(function($r) {
-            return [
-                'id' => $r->id,
-                'value' => $r->reading,
-                'accumulatedConsumption' => $r->accumulatedConsumption,
-                'waterPressure' => $r->waterPressure,
-                'readingDate' => Yii::$app->formatter->asDate($r->date, 'php:d/m/Y'),
-                'wasFix' => ($r->readingType == 1),
-            ];
-        }, $readings);
-    }
-    public function actionGetReadingDetail($id)
-    {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        $r = Meterreading::find()->where(['id' => $id])->one();
-
-        if (!$r) {
-            return ['error' => 'Reading not found'];
-        }
-
-        if($r->readingType === 1){
-            $problemType = Meterproblem::find()->where(['id' => $r->problemID])->one();
-        }
-
-        return [
-            'id' => $r->id,
-            'reading' => $r->reading,
-            'accumulatedConsumption' => $r->accumulatedConsumption,
-            'waterPressure' => $r->waterPressure,
-            'desc' => $r->desc,
-            'date' => $r->date,
-            'readingType' => $r->readingType,
-            'problemType' => $problemType->problemType ?? null,
-            'technician' => User::find()->where(['id' => $r->userID])->one()->username,
-            'meterAddress' => Meter::find()->where(['id' => $r->meterID])->one()->address,
-            'statusClass' => $r->problemState,
-        ];
     }
 }

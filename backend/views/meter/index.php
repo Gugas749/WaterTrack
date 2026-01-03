@@ -379,8 +379,6 @@ $statusText = match ($meter->state ?? null) {
                 });
             </script>
         <?php endif; ?>
-
-
         <!-- OVERLAY -->
         <div id="overlay"></div>
     </div>

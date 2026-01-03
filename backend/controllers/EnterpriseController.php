@@ -31,28 +31,29 @@ class EnterpriseController extends Controller
 
     public function actionIndex()
     {
-        $queryParam = Yii::$app->request->get('q');
-        $enterpriseIdParam = Yii::$app->request->get('id');
-        $enterprises = Enterprise::find()->all();
+        $search = Yii::$app->request->get('q');
+        $detail = Yii::$app->request->get('id');
+
+        $query = \common\models\Enterprise::find();
         $detailEnterprise = null;
 
-        //limpar os parametros da url
-        if ($queryParam !== null && trim($queryParam) === '') {
+        // Clean empty search
+        if ($search !== null && trim($search) === '') {
             return $this->redirect(['index']);
         }
-
-        //filtrar
-        if (!empty($queryParam)) {
-            $enterprises = array_filter($enterprises, function ($enterprise) use ($queryParam) {
-                return stripos($enterprise->name, $queryParam) !== false;
-            });
+        // Apply search filter
+        if ($search) {
+            $query->andWhere(['like', 'name', $search]);
         }
-        if ($enterpriseIdParam !== null) {
-            $detailEnterprise = Enterprise::find()->where(['id' => $enterpriseIdParam])->one();
+        $enterprises = $query->all();
+
+        if($detail){
+            $detailEnterprise = Enterprise::findOne($detail);
         }
 
         return $this->render('index', [
             'enterprises' => $enterprises,
+            'search' => $search,
             'addEnterpriseModel' => new Addenterpriseform(),
             'detailEnterprise' => $detailEnterprise,
         ]);

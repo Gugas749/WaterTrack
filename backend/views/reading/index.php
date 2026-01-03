@@ -6,6 +6,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 use common\models\Enterprise;
 use common\models\Userprofile;
+use yii\widgets\Pjax;
 
 $this->title = 'Leituras';
 $this->registerCssFile('@web/css/views-index.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
@@ -13,61 +14,71 @@ $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\Bo
 $this->registerJsFile('@web/js/reading-index.js', ['depends' => [\yii\bootstrap5\BootstrapPluginAsset::class]]);
 ?>
 <?php
-$statusOptions = [
-        1 => 'COM PROBLEMAS',
-        0  => 'SEM PROBLEMAS',
-];
-$statusClasses = [
-        0 => 'text-success',
-        1  => 'text-warning',
-];
+$readingType = (int) ($detailReading->readingType ?? 0);
 
-$statusClassesUser = match ($user->status ?? null) {
+$statusClassesUser = match ($readingType) {
     0 => 'bg-success',
-    1  => 'bg-warning',
+    1 => 'bg-warning',
     default => 'bg-secondary',
 };
 
-$statusText = match ($user->status ?? null) {
+$statusText = match ($readingType) {
     1 => 'COM PROBLEMAS',
-    0  => 'SEM PROBLEMAS',
+    0 => 'SEM PROBLEMAS',
     default => 'DESCONHECIDO',
 };
 
-$statusClass = match ($user->status ?? null) {
+$statusClass = match ($readingType) {
     0 => 'text-success',
-    1  => 'text-warning',
+    1 => 'text-warning',
     default => 'text-muted',
 };
 ?>
 
 <div class="content">
     <div class="container-fluid py-4" style="background-color:#f9fafb; min-height:100vh;">
+        <?php Pjax::begin([
+                'id' => 'readingsTable',
+                'timeout' => 5000,
+                'enablePushState' => false, // important
+        ]); ?>
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4 px-3">
             <h4 class="fw-bold text-dark">Leituras</h4>
             <div class="d-flex align-items-center gap-3">
                 <!-- Dropdown selection -->
+                <?php $form = ActiveForm::begin([
+                        'method' => 'get',
+                        'action' => ['reading/index'],
+                        'options' => [
+                                'data' => ['pjax' => true],
+                                'class' => 'd-flex align-items-center gap-3'
+                        ],
+                ]); ?>
+
                 <?= Html::dropDownList(
                         'enterprise_id',
-                        null,
+                        $selectedEnterpriseId ?? null,
                         $enterpriseItems,
                         [
                                 'class' => 'form-select',
-                                'id' => 'enterprise-dropdown',
                                 'prompt' => 'Selecione uma Empresa',
+                                'onchange' => '$("#readingsTable form").submit();',
                         ]
                 ) ?>
+
                 <?= Html::dropDownList(
                         'meter_id',
-                        null,
-                        [],
+                        $selectedMeterId ?? null,
+                        $meterItems ?? [],
                         [
                                 'class' => 'form-select',
-                                'id' => 'meter-dropdown',
-                                'prompt' => 'Selecione um Item',
+                                'prompt' => 'Selecione um Contador',
+                                'onchange' => '$("#readingsTable form").submit();',
                         ]
                 ) ?>
+
+                <?php ActiveForm::end(); ?>
 
                 <!-- Action -->
                 <button class="btn btn-primary rounded-4" style="background-color:#4f46e5; border:none;">
@@ -126,117 +137,137 @@ $statusClass = match ($user->status ?? null) {
                             <th></th>
                         </tr>
                         </thead>
-                        <tbody id="readings-table-body">
-                        <!-- Javascript que vai encher a lista -->
-                        <tr><td colspan="4" class="text-muted text-center">Sem leituras.</td></tr>
+                        <tbody>
+                            <?php if (!empty($readings)): ?>
+                                <?php foreach ($readings as $reading): ?>
+                                    <tr>
+                                        <td>
+                                            <?= htmlspecialchars($reading->id) ?>
+                                            <?php if($reading->readingType == 1): ?>
+                                                <i class="fas fa-wrench ms-2"></i>
+                                            <?php endif; ?>
+                                        </td>
+
+                                        <td>
+                                            <?= htmlspecialchars($reading->reading ?? 'N/A') ?>
+                                        </td>
+
+                                        <td><?= htmlspecialchars($reading->date ?? 'N/A') ?></td>
+
+                                        <td>
+                                            <?= Html::button('Ver Detalhes', [
+                                                    'class' => 'btn btn-outline-primary btn-sm fw-semibold shadow-sm',
+                                                    'onclick' => "window.location.href='" . Url::to(['reading/index', 'id' => $reading->id]) . "'",
+                                                    'style' => 'transition:0.2s;',
+                                                    'onmouseover' => "this.style.transform='scale(1.05)'",
+                                                    'onmouseout'  => "this.style.transform='scale(1)'",
+                                            ]) ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Nenhuma leitura encontrada.</td>
+                                </tr>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
+        <?php Pjax::end(); ?>
         <!-- DETAIL PANEL -->
-        <div id="detailPanel" class="detail-panel bg-white shadow" style="display:none;">
-            <div class="modal-content border-0 shadow-lg rounded-4 p-4">
-                <!-- HEADER -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5 class="fw-bold text-dark mb-0">
-                        Detalhes da Leitura
-                        <i id="detailWrenchIcon" class="fas fa-wrench ms-2" style="display:none;"></i>
-                    </h5>
-                    <button type="button" class="closeDetailPanel btn btn-sm btn-light">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <!-- STATUS BADGE -->
-                <div class="mb-4">
-                    <span id="detailStatusBadge" class="badge bg-secondary px-3 py-2">
-                        DESCONHECIDO
-                    </span>
-                </div>
+        <?php if ($detailReading): ?>
+            <div id="detailPanel" class="detail-panel bg-white shadow" style="display:none;">
+                <div class="modal-content border-0 shadow-lg rounded-4 p-4">
 
-                <!-- FIELDS -->
-                <div class="row g-1">
-                    <div class="col-md-2">
-                        <label class="form-label">Referência</label>
-                        <input id="detailReadingId" readonly class="form-control">
+                    <!-- TÍTULO + BOTÃO FECHAR -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-dark mb-0">Detalhes da Leitura</h5>
+                        <button type="button" class="closeDetailPanel btn btn-sm btn-light">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Técnico</label>
-                        <input id="detailTechnician" readonly class="form-control">
-                    </div>
-                    <div class="col-md-5">
-                        <label class="form-label">Contador</label>
-                        <input id="detailMeterAddress" readonly class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Leitura</label>
-                        <input id="detailReadingValue" readonly class="form-control">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Consumo acumulado</label>
-                        <input id="detailAccumulatedConsumption" readonly class="form-control">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Pressão da Água</label>
-                        <input id="detailWaterPressure" readonly class="form-control">
-                    </div>
-                    <div class="col-md-11">
-                        <label class="form-label">Descrição</label>
-                        <input id="detailDesc" readonly class="form-control">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Data</label>
-                        <input id="detailDate" readonly class="form-control">
-                    </div>
-                    <!-- ONLY SHOW IF readingType === 1 (via JS) -->
-                    <div class="col-md-5" id="detailProblemContainer" style="display:none;">
-                        <label class="form-label">Problema</label>
-                        <input id="detailProblemType" readonly class="form-control">
-                    </div>
-                </div>
 
-                <!-- FOOTER BUTTONS -->
-                <div class="d-flex justify-content-end mt-4 gap-2">
-                    <button type="button" class="closeDetailPanel btn btn-light px-4">Fechar</button>
-                    <button id="detailEditButton" class="btn btn-primary px-4 py-2"
-                            style="background-color:#4f46e5; border:none;">
-                        Editar
-                    </button>
-                </div>
+                    <?php $form = \yii\widgets\ActiveForm::begin([
+                            'id' => 'update-reading-form',
+                            'action' => ['update', 'id' => $detailReading->id],
+                            'method' => 'post'
+                    ]); ?>
 
+                    <!-- STATUS BADGE -->
+                    <div class="mb-4">
+                        <?php
+                            $statusClass = $stateClasses[$detailReading->readingType ?? 0] ?? 'bg-secondary';
+                            $statusText = $stateOptions[$detailReading->readingType ?? 0] ?? 'DESCONHECIDO';
+                        ?>
+                        <span id="meter-status-badge" class="badge <?= $statusClass ?> px-3 py-2"><?= $statusText ?></span>
+                    </div>
+
+                    <div class="row g-1">
+                        <div class="col-md-2">
+                            <?= $form->field($detailReading, 'id')->textInput(['readonly' => true, 'id' => 'detailReadingId'])->label('Referência') ?>
+                        </div>
+                        <div class="col-md-4">
+                            <input id="detailTechnician" class="form-control" readonly
+                                   value="<?= htmlspecialchars($technician->username ?? '') ?>" placeholder="Técnico">
+                        </div>
+                        <div class="col-md-5">
+                            <input id="detailMeterAddress" class="form-control" readonly
+                                   value="<?= htmlspecialchars($detailReading->meter->address ?? '') ?>" placeholder="Contador">
+                        </div>
+                        <div class="col-md-4">
+                            <?= $form->field($detailReading, 'reading')->textInput(['readonly' => true, 'id' => 'detailReadingValue'])->label('Leitura') ?>
+                        </div>
+                        <div class="col-md-4">
+                            <?= $form->field($detailReading, 'accumulatedConsumption')->textInput(['readonly' => true, 'id' => 'detailAccumulatedConsumption'])->label('Consumo acumulado') ?>
+                        </div>
+                        <div class="col-md-3">
+                            <?= $form->field($detailReading, 'waterPressure')->textInput(['readonly' => true, 'id' => 'detailWaterPressure'])->label('Pressão da Água') ?>
+                        </div>
+                        <div class="col-md-11">
+                            <?= $form->field($detailReading, 'desc')->textInput(['readonly' => true, 'id' => 'detailDesc'])->label('Descrição') ?>
+                        </div>
+                        <div class="col-md-3">
+                            <?= $form->field($detailReading, 'date')->textInput(['readonly' => true, 'id' => 'detailDate'])->label('Data') ?>
+                        </div>
+
+                        <!-- ONLY SHOW IF readingType === 1 -->
+                        <?php if (($detailReading->readingType ?? 0) === 1): ?>
+                            <div class="col-md-5" id="detailProblemContainer">
+                                <input id="detailProblemType" class="form-control" readonly
+                                       value="<?= htmlspecialchars($selectedDetailsProblem->desc ?? '') ?>" placeholder="Problema">
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- FOOTER BUTTONS -->
+                    <div class="d-flex justify-content-end mt-4 gap-2">
+                        <button type="button" class="closeDetailPanel btn btn-light px-4">Fechar</button>
+                        <?= Html::submitButton('Editar', ['class' => 'btn btn-primary px-4 py-2', 'style' => 'background-color:#4f46e5; border:none;', 'id' => 'detailEditButton']) ?>
+                    </div>
+
+                    <?php \yii\widgets\ActiveForm::end(); ?>
+                </div>
             </div>
-        </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const detailPanel = document.getElementById('detailPanel');
+                    const overlay = document.getElementById('overlay');
+
+                    overlay.style.display = 'block';
+                    detailPanel.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+
+                    requestAnimationFrame(() => {
+                        detailPanel.classList.add('show');
+                    });
+                });
+            </script>
+        <?php endif; ?>
         <!-- OVERLAY -->
         <div id="overlay"></div>
     </div>
 </div>
-
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        new Chart(document.getElementById("barChart"), {
-            type: 'bar',
-            data: {
-                labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul'],
-                datasets: [{
-                    label: 'Leituras',
-                    data: [23400, 16000, 30000, 10000, 23000, 5000, 12000],
-                    backgroundColor: '#4f46e5',
-                    borderRadius: 6
-                }]
-            },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true, ticks: { color: '#6b7280' } }, x: { ticks: { color: '#6b7280' } } }
-            }
-        });
-    });
-</script>
-<!-- AJAX URLS -->
-<script>
-    const getMetersUrl = "<?= \yii\helpers\Url::to(['/reading/get-meters']) ?>";
-    const getReadingsUrl = "<?= \yii\helpers\Url::to(['/reading/get-readings']) ?>";
-    const getReadingDetailUrl = "<?= \yii\helpers\Url::to(['/reading/get-reading-detail']) ?>";
-</script>
 

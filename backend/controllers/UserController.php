@@ -34,31 +34,29 @@ class UserController extends Controller
 
     public function actionIndex()
     {
-        $queryParam = Yii::$app->request->get('q');
-        $userIdParam = Yii::$app->request->get('id');
+        $search = Yii::$app->request->get('q');
+        $detail = Yii::$app->request->get('id');
 
-        $users = User::find()->all();
+        $query = \common\models\User::find();
         $detailUser = null;
 
-        if ($queryParam !== null && trim($queryParam) === '') {
+        // Clean empty search
+        if ($search !== null && trim($search) === '') {
             return $this->redirect(['index']);
         }
-
-        if (!empty($queryParam)) {
-            $users = array_filter($users, function ($user) use ($queryParam) {
-                return stripos($user->username, $queryParam) !== false;
-            });
+        // Apply search filter
+        if ($search) {
+            $query->andWhere(['like', 'username', $search]);
         }
+        $users = $query->all();
 
-        if ($userIdParam !== null) {
-            $detailUser = User::find()
-                ->where(['id' => $userIdParam])
-                ->with('userprofile')
-                ->one();
+        if($detail){
+            $detailUser = User::findOne($detail);
         }
 
         return $this->render('index', [
             'users' => $users,
+            'search' => $search,
             'addUserModel' => new Adduserform(),
             'addUserProfile' => new Userprofile(),
             'addTechnicianInfo' => new Technicianinfo(),
