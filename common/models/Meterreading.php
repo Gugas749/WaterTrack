@@ -2,9 +2,11 @@
 
 namespace common\models;
 
-use app\models\Meter;
-use app\models\Meterproblem;
-use app\models\User;
+
+
+use common\models\Meter;
+use common\models\Meterproblem;
+use common\models\User;
 
 /**
  * This is the model class for table "meterreading".
