@@ -31,8 +31,8 @@ class MeterController extends Controller
         $user = Yii::$app->user->identity;
         $isTechnician = $user ? $user->isTechnician() : false;
 
-        $queryParam = Yii::$app->request->get('q');
-        $meterIdParam = Yii::$app->request->get('id');
+        $search = Yii::$app->request->get('q');
+        $detail = Yii::$app->request->get('id');
 
         if ($isTechnician) {
             $enterpriseIds = TechnicianInfo::find()
@@ -53,16 +53,19 @@ class MeterController extends Controller
             ]);
         }
 
-
-        if (!empty($queryParam)) {
-            $query->andWhere(['like', 'address', $queryParam]);
+        // Clean empty search
+        if ($search !== null && trim($search) === '') {
+            return $this->redirect(['index']);
         }
-
+        // Apply search filter
+        if ($search) {
+            $query->andWhere(['like', 'address', $search]);
+        }
         $meters = $query->all();
 
         $detailMeter = null;
-        if ($meterIdParam) {
-            $detailMeter = Meter::findOne($meterIdParam);
+        if ($detail) {
+            $detailMeter = Meter::findOne($detail);
             if ($detailMeter) {
                 if (!$isTechnician && $detailMeter->userID !== $user->id) {
                     $detailMeter = null;
@@ -72,6 +75,7 @@ class MeterController extends Controller
 
         return $this->render('index', [
             'meters' => $meters,
+            'search' => $search,
             'users' => User::find()->all(),
             'meterTypes' => MeterType::find()->all(),
             'enterprises' => Enterprise::find()->all(),

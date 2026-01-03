@@ -29,6 +29,22 @@ use common\models\User;
  */
 class Meterreading extends \yii\db\ActiveRecord
 {
+    /**
+     * @param int $id
+     * @param int $userID
+     * @param int $meterID
+     * @param int|null $problemID
+     * @param string $reading
+     * @param string $accumulatedConsumption
+     * @param string $date
+     * @param string $waterPressure
+     * @param string $desc
+     * @param int $readingType
+     * @param int $problemState
+     * @param \common\models\Meter $meter
+     * @param \common\models\Meterproblem $problem
+     * @param \common\models\User $user
+     */
 
 
     /**
@@ -106,4 +122,59 @@ class Meterreading extends \yii\db\ActiveRecord
         return $this->hasOne(User::class, ['id' => 'userID']);
     }
 
+
+    //--------------------MOSQUITTO--------------------
+    public function afterSave($insert, $changedAttributes)
+    {
+        parent::afterSave($insert, $changedAttributes);
+
+        //Obter dados do registo em causa
+
+        $myObj = new \stdClass();
+        $myObj->id = $this->id;
+        $myObj->userID =  $this->userID;
+        $myObj->meterID = $this->meterID;
+        $myObj->problemID = $this->problemID;
+        $myObj->reading = $this->reading;
+        $myObj->accumulatedConsumption = $this->accumulatedConsumption;
+        $myObj->date = $this->date;
+        $myObj->waterPressure = $this->waterPressure;
+        $myObj->desc = $this->desc;
+        $myObj->readingType = $this->readingType;
+        $myObj->problemState = $this->problemState;
+        $myJSON = json_encode($myObj);
+
+        if($insert)
+            $this->FazPublishNoMosquitto("INSERT",$myJSON);
+        else
+            $this->FazPublishNoMosquitto("UPDATE",$myJSON);
+    }
+
+    public function afterDelete()
+    {
+        parent::afterDelete();
+
+        $myObj=new \stdClass();
+        $myObj->id = $this->id;
+        $myJSON = json_encode($myObj);
+
+        $this->FazPublishNoMosquitto("DELETE",$myJSON);
+    }
+
+    public function FazPublishNoMosquitto($canal, $msg)
+    {
+        $server = "127.0.0.1";
+        $port = 1883;
+        $username = ""; // set your username
+        $password = ""; // set your password
+        $client_id = "phpMQTT-publisher"; // unique!
+        $mqtt = new \app\mosquitto\phpMQTT($server, $port, $client_id);
+        if ($mqtt->connect(true, NULL, $username, $password)) {
+            $mqtt->publish($canal, $msg, 0);
+            $mqtt->close();
+        }
+        else {
+            file_put_contents("debug.output","Time out!");
+        }
+    }
 }

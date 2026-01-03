@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\Url;
 use yii\helpers\ArrayHelper;
+use yii\widgets\Pjax;
 
 $this->title = 'Meus Contadores';
 $this->params['breadcrumbs'][] = $this->title;
@@ -39,7 +40,11 @@ $measureUnityOptions = [
 
 <div class="content">
     <div class="container-fluid py-4" style="background-color:#f9fafb; min-height:100vh;">
-
+        <?php Pjax::begin([
+                'id' => 'metersTable',
+                'timeout' => 5000,
+                'enablePushState' => false, // important
+        ]); ?>
         <!-- HEADER -->
         <div class="d-flex justify-content-between align-items-center mb-4 px-3">
             <h4 class="fw-bold text-dark">Meus Contadores</h4>
@@ -50,12 +55,12 @@ $measureUnityOptions = [
                     <?php $form = ActiveForm::begin([
                             'method' => 'get',
                             'action' => ['meter/index'],
-                            'options' => ['class' => 'd-flex align-items-center w-100'],
+                            'options' => ['data' => ['pjax' => true], 'class' => 'd-flex align-items-center w-100'],
                     ]); ?>
                     <input type="text" name="q"
                            class="form-control form-control-sm ps-3 pe-5"
-                           placeholder="Pesquisar morada"
-                           value="<?= Html::encode(Yii::$app->request->get('q')) ?>"
+                           placeholder="Search"
+                           value="<?= Html::encode($search) ?>"
                            style="border:1px solid #e5e7eb;">
                     <button type="submit" class="input-group-text bg-transparent border-0 text-muted"
                             style="position:absolute; right:10px; top:50%; transform:translateY(-50%);">
@@ -73,7 +78,6 @@ $measureUnityOptions = [
                 <?php endif; ?>
             </div>
         </div>
-
         <!-- TABLE -->
         <div class="card shadow-sm border-0 mx-3" style="border-radius:16px;">
             <div class="card-body">
@@ -137,6 +141,7 @@ $measureUnityOptions = [
 
             </div>
         </div>
+        <?php Pjax::end(); ?>
 
         <!-- ADD PANEL (só visível para técnico) -->
         <?php if (!empty($isTechnician) && $isTechnician): ?>
