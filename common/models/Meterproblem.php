@@ -2,7 +2,7 @@
 
 namespace common\models;
 
-use app\models\User;
+use common\models\User;
 
 /**
  * This is the model class for table "meterproblem".

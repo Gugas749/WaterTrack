@@ -116,6 +116,7 @@ class Meter extends \yii\db\ActiveRecord
         return $this->hasMany(Meterreading::class, ['meterID' => 'id']);
     }
 
+
     /**
      * Gets query for [[User]].
      *
@@ -125,5 +126,7 @@ class Meter extends \yii\db\ActiveRecord
     {
         return $this->hasOne(User::class, ['id' => 'userID']);
     }
+
+
 
 }
