@@ -1,6 +1,11 @@
 <?php
 namespace frontend\controllers;
 
+use backend\models\Addmeterform;
+use common\models\Enterprise;
+use common\models\Metertype;
+use common\models\Technicianinfo;
+use common\models\User;
 use Yii;
 use yii\web\Controller;
 use common\models\Meter;
@@ -29,12 +34,25 @@ class MeterController extends Controller
         $queryParam = Yii::$app->request->get('q');
         $meterIdParam = Yii::$app->request->get('id');
 
-        // técnicos podem ver todos; moradores só os seus
         if ($isTechnician) {
-            $query = Meter::find();
+            $enterpriseIds = TechnicianInfo::find()
+                ->select('enterpriseID')
+                ->where(['userID' => $user->id])
+                ->column();
+
+            if (empty($enterpriseIds)) {
+                $query = Meter::find()->where('0=1');
+            } else {
+                $query = Meter::find()->where([
+                    'enterpriseID' => $enterpriseIds
+                ]);
+            }
         } else {
-            $query = Meter::find()->where(['userID' => $user->id]);
+            $query = Meter::find()->where([
+                'userID' => $user->id
+            ]);
         }
+
 
         if (!empty($queryParam)) {
             $query->andWhere(['like', 'address', $queryParam]);
@@ -42,13 +60,11 @@ class MeterController extends Controller
 
         $meters = $query->all();
 
-        // detalhe — garante que o detail pertence ao user, excepto se technician
         $detailMeter = null;
         if ($meterIdParam) {
             $detailMeter = Meter::findOne($meterIdParam);
             if ($detailMeter) {
                 if (!$isTechnician && $detailMeter->userID !== $user->id) {
-                    // morador tentando ver detalhe de outro — negar
                     $detailMeter = null;
                 }
             }
@@ -56,56 +72,58 @@ class MeterController extends Controller
 
         return $this->render('index', [
             'meters' => $meters,
+            'users' => User::find()->all(),
+            'meterTypes' => MeterType::find()->all(),
+            'enterprises' => Enterprise::find()->all(),
             'detailMeter' => $detailMeter,
+            'addMeterModel' => new AddMeterForm(),
             'isTechnician' => $isTechnician,
         ]);
     }
 
     public function actionCreate()
     {
+        $model = new Addmeterform();
         $user = Yii::$app->user->identity;
 
-        if (!$user->isTechnician()) {
-            throw new ForbiddenHttpException('Sem permissão para criar contadores.');
+        if ($model->load(Yii::$app->request->post())) {
+
+            if ($user->isTechnician()) {
+                $enterpriseId = TechnicianInfo::find()
+                    ->select('enterpriseID')
+                    ->where(['userID' => $user->id])
+                    ->scalar();
+
+                $model->enterpriseID = $enterpriseId;
+            }
+
+            if ($model->createmeter()) {
+                Yii::$app->session->setFlash('success', 'Contador criado com sucesso!');
+                return $this->redirect(['index']);
+            }
         }
 
-        $model = new Meter();
-        //$model->userID = $user->id;
-        $model->state = 1;        // ATIVO por padrão
-        $model->meterTypeID = 1;  // exemplo
-        $model->enterpriseID = 1; // exemplo
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Contador criado com sucesso!');
-            return $this->redirect(['index', 'id' => $model->id]);
-        } else {
-            // mostra erros para debugging
-            Yii::$app->session->setFlash('error', 'Falha ao criar contador: ' . json_encode($model->errors));
-            return $this->redirect(['index']);
-        }
+        Yii::$app->session->setFlash('error', 'Ação Falhada: Contactar Administrador [M-1]');
+        return $this->redirect(['index']);
     }
+
 
     public function actionUpdate($id)
     {
-        // apenas técnicos podem actualizar
-        if (!Yii::$app->user->identity->isTechnician()) {
-            throw new ForbiddenHttpException('Sem permissão para actualizar contadores.');
-        }
-
         $model = Meter::findOne($id);
         if (!$model) {
-            Yii::$app->session->setFlash('error', 'Contador não encontrado.');
+            Yii::$app->session->setFlash('error', 'Ação Negada: Contador não encontrado.');
             return $this->redirect(['index']);
         }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Contador atualizado com sucesso!');
+            Yii::$app->session->setFlash('success', 'Contador atualizada com sucesso!');
             return $this->redirect(['index']);
         }
 
-        // se chegou aqui, volta ao index mostrando o detail panel com erros (opcional)
-        Yii::$app->session->setFlash('error', 'Falha ao atualizar contador.');
-        return $this->redirect(['index', 'id' => $id]);
+        return $this->render('update', [
+            'model' => $model,
+        ]);
     }
 
 }

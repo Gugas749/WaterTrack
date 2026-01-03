@@ -3,45 +3,31 @@
 use yii\helpers\Html;
 use yii\bootstrap5\ActiveForm;
 use yii\helpers\Url;
-use common\models\Meter;
-use common\models\User;
-
-// pegar todos os usuários (só os que podem ter contadores)
-$users = User::find()->all();
-
-// montar array para dropdown [id => nome]
-$userOptions = [];
-foreach ($users as $u) {
-    $userOptions[$u->id] = $u->username; // ou $u->name se tiveres um campo de nome completo
-}
+use yii\helpers\ArrayHelper;
 
 $this->title = 'Meus Contadores';
 $this->params['breadcrumbs'][] = $this->title;
 
 $this->registerCssFile('@web/css/views-index.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\BootstrapPluginAsset::class]]);
+$this->registerJsFile('@web/js/meter-index-form.js', ['depends' => [\yii\bootstrap5\BootstrapPluginAsset::class]]);
 
-$addMeter = new Meter();
-$addMeter->state = 1;
 $stateOptions = [
         1 => 'ATIVO',
         2 => 'COM PROBLEMA',
         0 => 'INATIVO',
 ];
-
 $stateClasses = [
         1 => 'text-success',
         2 => 'text-warning',
         0 => 'text-danger',
 ];
-
 $classOptions = [
         'A' => 'Classe A',
         'B' => 'Classe B',
         'C' => 'Classe C',
         'D' => 'Classe D',
 ];
-
 $measureUnityOptions = [
         'm3'   => 'm³',
         'm3h'  => 'm³/h',
@@ -80,8 +66,8 @@ $measureUnityOptions = [
 
                 <!-- ADD BUTTON (apenas técnico) -->
                 <?php if (!empty($isTechnician) && $isTechnician): ?>
-                    <button class="btn btn-primary" id="openAddPanel"
-                            onclick="document.getElementById('addPanel').style.display='block'; document.getElementById('overlay').style.display='block'">
+                    <button class="btn btn-primary" data-toggle="right-panel"
+                            style="background-color:#4f46e5; border:none;">
                         <i class="fas fa-plus me-1"></i> Adicionar Contador
                     </button>
                 <?php endif; ?>
@@ -155,111 +141,50 @@ $measureUnityOptions = [
         <!-- ADD PANEL (só visível para técnico) -->
         <?php if (!empty($isTechnician) && $isTechnician): ?>
 
-            <div id="addPanel" class="detail-panel show bg-white shadow" style="display:none;">
-                <div class="modal-content border-0 shadow-lg rounded-4 p-4">
+            <div id="rightPanel" class="right-panel bg-white shadow" style="display:none;">
+                <div class="right-panel-header d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <h5 class="fw-bold text-dark">Adicionar Contador</h5>
+                    <button type="button" class="btn btn-sm btn-light" id="closeRightPanel">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
 
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold text-dark mb-0">Adicionar Contador</h5>
-                        <button type="button" class="btn btn-sm btn-light" onclick="closePanels()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <?php
-                    // FORM DE CRIAÇÃO
-                    $addForm = ActiveForm::begin([
+                <div class="p-3">
+                    <?php $form = \yii\widgets\ActiveForm::begin([
                             'id' => 'add-meter-form',
                             'action' => ['meter/create'],
-                            'method' => 'post',
-                    ]);
-                    ?>
+                            'method' => 'post'
+                    ]); ?>
 
-                    <!-- IDENTIFICAÇÃO -->
-                    <h6 class="fw-bold text-secondary mt-3 mb-2">Identificação</h6>
+                    <?= $form->field($addMeterModel, 'address')->textInput(['placeholder' => 'Morada']) ?>
 
-                    <div class="col-md-3">
-                        <label class="form-label">Usuário</label>
-                        <?= $addForm->field($addMeter, 'userID')
-                                ->dropDownList($userOptions, ['prompt' => 'Selecione um usuário'])
-                                ->label(false) ?>
+                    <?= $form->field($addMeterModel, 'userID')->dropDownList(
+                            ArrayHelper::map($users, 'id', fn($u) => $u->id . ' - ' . $u->username),
+                            ['prompt' => 'Selecione o Utilizador']
+                    ) ?>
+
+                    <?= $form->field($addMeterModel, 'meterTypeID')->dropDownList(
+                            ArrayHelper::map($meterTypes, 'id', fn($t) => $t->id . ' - ' . $t->description),
+                            ['prompt' => 'Selecione o Tipo de Contador']
+                    ) ?>
+
+                    <?= $form->field($addMeterModel, 'class')->dropDownList($classOptions, ['prompt' => 'Selecione a Classe']) ?>
+
+                    <?= $form->field($addMeterModel, 'instalationDate')->input('date') ?>
+
+                    <?= $form->field($addMeterModel, 'maxCapacity')->textInput(['placeholder' => 'Capacidade Máxima']) ?>
+
+                    <?= $form->field($addMeterModel, 'measureUnity')->dropDownList($measureUnityOptions, ['prompt' => 'Selecione a Unidade de Medida']) ?>
+
+                    <?= $form->field($addMeterModel, 'supportedTemperature')->textInput(['placeholder' => 'Temperatura Suportada']) ?>
+
+                    <?= $form->field($addMeterModel, 'state')->dropDownList($stateOptions, ['prompt' => 'Selecione o Estado']) ?>
+
+                    <div class="text-end mt-3">
+                        <?= Html::submitButton('Criar Contador', ['class' => 'btn btn-primary']) ?>
                     </div>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-3">
-                            <label class="form-label">Classe</label>
-                            <?= $addForm->field($addMeter, 'class')
-                                    ->dropDownList($classOptions)
-                                    ->label(false) ?>
-                        </div>
-
-                        <div class="col-md-3">
-                            <label class="form-label">Estado</label>
-                            <?= $addForm->field($addMeter, 'state')
-                                    ->dropDownList($stateOptions)
-                                    ->label(false) ?>
-                        </div>
-                    </div>
-
-                    <!-- LOCALIZAÇÃO -->
-                    <h6 class="fw-bold text-secondary mt-3 mb-2">Localização</h6>
-
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Morada</label>
-                            <?= $addForm->field($addMeter, 'address')
-                                    ->textInput()
-                                    ->label(false) ?>
-                        </div>
-                    </div>
-
-                    <!-- ESPECIFICAÇÕES -->
-                    <h6 class="fw-bold text-secondary mt-3 mb-2">Especificações Técnicas</h6>
-
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Capacidade Máxima</label>
-                            <?= $addForm->field($addMeter, 'maxCapacity')
-                                    ->textInput()
-                                    ->label(false) ?>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Unidade de Medida</label>
-                            <?= $addForm->field($addMeter, 'measureUnity')
-                                    ->dropDownList($measureUnityOptions)
-                                    ->label(false) ?>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Temperatura Suportada</label>
-                            <?= $addForm->field($addMeter, 'supportedTemperature')
-                                    ->textInput()
-                                    ->label(false) ?>
-                        </div>
-                    </div>
-
-                    <!-- DATAS -->
-                    <h6 class="fw-bold text-secondary mt-3 mb-2">Datas</h6>
-
-                    <div class="row g-2 mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label">Data de Instalação</label>
-                            <?= $addForm->field($addMeter, 'instalationDate')
-                                    ->input('date')
-                                    ->label(false) ?>
-                        </div>
-                    </div>
-
-                    <!-- BOTÕES -->
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                        <?= Html::submitButton(
-                                'Criar Contador',
-                                ['class' => 'btn btn-primary px-4']
-                        ) ?>
-                    </div>
-
-                    <?php ActiveForm::end(); ?>
-
+                    <?php \yii\widgets\ActiveForm::end(); ?>
                 </div>
             </div>
 
@@ -281,9 +206,11 @@ $measureUnityOptions = [
 
             <div id="detailPanel" class="detail-panel bg-white shadow show">
                 <div class="modal-content border-0 shadow-lg rounded-4 p-4">
+
+                    <!-- TÍTULO + BOTÃO FECHAR -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-bold text-dark mb-0">Detalhes do Contador</h5>
-                        <button type="button" class="closeDetailPanel btn btn-sm btn-light" onclick="closePanels()">
+                        <button type="button" class="closeDetailPanel btn btn-sm btn-light">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -426,9 +353,6 @@ $measureUnityOptions = [
 
                 </div>
             </div>
-
-
-
             <script>
                 function closePanels() {
                     window.location.href = '<?= Url::to(['meter/index']) ?>';
