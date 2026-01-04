@@ -16,26 +16,25 @@ class Addreadingform extends Model
     public $desc;
     public $date;
     public $readingType;
-    public $problemState;
+    public $problemID;
 
     public function rules()
     {
         return [
-            [['meterID', 'userID', 'reading', 'accumulatedConsumption', 'waterPressure', 'date', 'readingType'], 'required'],
-            [['meterID', 'userID', 'readingType', 'problemState'], 'integer'],
+            [['meterID', 'userID', 'reading', 'accumulatedConsumption',
+                'waterPressure', 'date', 'readingType'], 'required'],
+
+            [['meterID', 'userID', 'readingType', 'problemID'], 'integer'],
+
+            ['problemID', 'filter', 'filter' => function ($v) {
+                return $v === '' ? null : (int)$v;
+            }],
+
             [['reading', 'accumulatedConsumption', 'waterPressure'], 'number'],
             ['desc', 'string', 'max' => 255],
             ['date', 'date', 'format' => 'php:Y-m-d'],
-            ['problemState', 'default', 'value' => 0], // aqui
-            ['problemState', 'required', 'when' => function($model) {
-                return $model->readingType == 1;
-            }, 'whenClient' => "function (attribute, value) {
-            return $('#addreadingmodel-readingtype').val() == '1';
-        }"],
         ];
     }
-
-
 
     public function attributeLabels()
     {
@@ -69,7 +68,13 @@ class Addreadingform extends Model
         $reading->date = $this->date;
         $reading->readingType = $this->readingType;
 
-        $reading->problemState = $this->readingType == 1 ? $this->problemState : null;
+        if ($this->problemID !== null) {
+            $reading->problemState = 1;
+            $reading->problemID = $this->problemID;
+        } else {
+            $reading->problemState = 0;
+            $reading->problemID = null;
+        }
 
         if (!$reading->save()) {
             Yii::error($reading->errors, __METHOD__);
@@ -78,5 +83,4 @@ class Addreadingform extends Model
 
         return true;
     }
-
 }

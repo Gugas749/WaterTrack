@@ -43,6 +43,10 @@ class ReadingController extends \yii\web\Controller
         $technician = null;
         $selectedDetailsProblem = null;
         $meterItems = null;
+        $accumulatedConsumptionTotal = 0;
+        $waterPressureTotal = 0;
+        $accumulatedConsumption = 0;
+        $waterPressure = 0;
 
         $enterprises = Enterprise::find()->all();
         $meters = Meter::find()->all();
@@ -73,6 +77,16 @@ class ReadingController extends \yii\web\Controller
             $readings = Meterreading::find()->where(['like', 'meterID', $meterID])->all();
         }
 
+        foreach ($readings as $reading) {
+            $accumulatedConsumptionTotal += $reading->accumulatedConsumption;
+            $waterPressureTotal += $reading->waterPressure;
+        }
+
+        if(count($readings) > 0){
+            $accumulatedConsumption = $accumulatedConsumptionTotal / count($readings);
+            $waterPressure = $waterPressureTotal / count($readings);
+        }
+
         return $this->render('index', [
             'users' => User::find()->all(),
             'readings' => $readings,
@@ -86,16 +100,18 @@ class ReadingController extends \yii\web\Controller
             'addReadingModel' => new Meterreading(),
             'meters' => $meters,
             'problems' => $problems,
+            'accumulatedConsumption' => number_format($accumulatedConsumption, 2),
+            'waterPressure' => number_format($waterPressure, 2),
         ]);
     }
 
     public function actionCreate()
     {
-        $model = new Addreadingform();
+        $form = new Addreadingform();
 
-        Yii::error(Yii::$app->request->post(), __METHOD__);
+        $post = Yii::$app->request->post();
 
-        if ($model->load(Yii::$app->request->post()) && $model->createReading()) {
+        if ($form->load(['Addreadingform' => $post['Meterreading']]) && $form->createReading()) {
             Yii::$app->session->setFlash('success', 'Leitura criada com sucesso!');
             return $this->redirect(['index']);
         }

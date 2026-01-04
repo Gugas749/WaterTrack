@@ -40,7 +40,7 @@ class Meterreading extends \yii\db\ActiveRecord
      * @param string $waterPressure
      * @param string $desc
      * @param int $readingType
-     * @param int $problemState
+     * @param int|null $problemState
      * @param \common\models\Meter $meter
      * @param \common\models\Meterproblem $problem
      * @param \common\models\User $user
@@ -62,15 +62,26 @@ class Meterreading extends \yii\db\ActiveRecord
     {
         return [
             [['problemID'], 'default', 'value' => null],
-            [['userID', 'meterID', 'reading', 'accumulatedConsumption', 'date', 'waterPressure', 'desc', 'readingType', 'problemState'], 'required'],
+
+            [['userID', 'meterID', 'reading', 'accumulatedConsumption', 'date',
+                'waterPressure', 'desc', 'readingType'], 'required'],
+
             [['userID', 'meterID', 'problemID', 'readingType', 'problemState'], 'integer'],
+
+            // normalize empty form input
+            ['problemState', 'filter', 'filter' => function ($value) {
+                return $value === '' ? null : $value;
+            }],
+
             [['date'], 'safe'],
             [['reading', 'accumulatedConsumption', 'waterPressure', 'desc'], 'string', 'max' => 100],
+
             [['meterID'], 'exist', 'skipOnError' => true, 'targetClass' => Meter::class, 'targetAttribute' => ['meterID' => 'id']],
             [['problemID'], 'exist', 'skipOnError' => true, 'targetClass' => Meterproblem::class, 'targetAttribute' => ['problemID' => 'id']],
             [['userID'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['userID' => 'id']],
         ];
     }
+
 
     /**
      * {@inheritdoc}

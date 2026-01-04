@@ -14,27 +14,6 @@ $this->registerCssFile('@web/css/views-index.css', ['depends' => [\yii\bootstrap
 $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerJsFile('@web/js/reading-index.js', ['depends' => [\yii\bootstrap5\BootstrapPluginAsset::class]]);
 ?>
-<?php
-$readingType = (int) ($detailReading->readingType ?? 0);
-
-$statusClassesUser = match ($readingType) {
-    0 => 'bg-success',
-    1 => 'bg-warning',
-    default => 'bg-secondary',
-};
-
-$statusText = match ($readingType) {
-    1 => 'COM PROBLEMAS',
-    0 => 'SEM PROBLEMAS',
-    default => 'DESCONHECIDO',
-};
-
-$statusClass = match ($readingType) {
-    0 => 'text-success',
-    1 => 'text-warning',
-    default => 'text-muted',
-};
-?>
 
 <div class="content">
     <div class="container-fluid py-4" style="background-color:#f9fafb; min-height:100vh;">
@@ -96,8 +75,8 @@ $statusClass = match ($readingType) {
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div>
-                                <h6 class="text-muted mb-1">Consumo Acumulado</h6>
-                                <h3 class="fw-bold mb-0 text-dark" id="accumulatedConsumption-label">0</h3>
+                                <h6 class="text-muted mb-1">Média do Consumo Acumulado</h6>
+                                <h3 class="fw-bold mb-0 text-dark"><?= $accumulatedConsumption ?></h3>
 <!--                                <small class="text-success fw-semibold">+1,400 Novos</small>-->
                             </div>
                             <div class="text-primary fs-3"><i class="fas fa-tint"></i></div>
@@ -111,7 +90,7 @@ $statusClass = match ($readingType) {
                         <div class="d-flex justify-content-between">
                             <div>
                                 <h6 class="text-muted mb-1">Média da Pressão</h6>
-                                <h3 class="fw-bold mb-0 text-dark" id="waterPressure-label">0</h3>
+                                <h3 class="fw-bold mb-0 text-dark"><?= $waterPressure ?></h3>
 <!--                                <small class="text-success fw-semibold">+1,000 Hoje</small>-->
                             </div>
                             <div class="text-warning fs-3"><i class="fas fa-gauge-high"></i></div>
@@ -129,6 +108,7 @@ $statusClass = match ($readingType) {
                         <thead class="text-muted small">
                         <tr>
                             <th>Referência Leitura</th>
+                            <th>Consumo Acumulado</th>
                             <th>Leitura</th>
                             <th>Data da Leitura</th>
                             <th></th>
@@ -143,6 +123,10 @@ $statusClass = match ($readingType) {
                                             <?php if($reading->readingType == 1): ?>
                                                 <i class="fas fa-wrench ms-2"></i>
                                             <?php endif; ?>
+                                        </td>
+
+                                        <td>
+                                            <?= htmlspecialchars($reading->accumulatedConsumption ?? 'N/A') ?>
                                         </td>
 
                                         <td>
@@ -214,7 +198,6 @@ $statusClass = match ($readingType) {
                         0 => 'Sem Problemas',
                         1 => 'Com Problemas',
                 ], [
-                        'prompt' => 'Selecione o Tipo de Leitura',
                         'onchange' => new JsExpression("
             if (this.value == 1) {
                 document.getElementById('problemContainer').style.display = 'block';
@@ -226,11 +209,9 @@ $statusClass = match ($readingType) {
 
                 <!-- Problema apenas visível se readingType = 1 -->
                 <div id="problemContainer" style="display:<?= $addReadingModel->readingType == 1 ? 'block' : 'none' ?>;">
-                    <?= $form->field($addReadingModel, 'problemState', [
-                            'enableClientValidation' => false
-                    ])->dropDownList(
+                    <?= $form->field($addReadingModel, 'problemID')->dropDownList(
                             ArrayHelper::map($problems, 'id', 'desc'),
-                            ['prompt' => $addReadingModel->readingType == 1 ? 'Selecione o Problema' : '0']
+                            ['prompt' => 'Selecione o Problema']
                     ) ?>
                 </div>
 
@@ -282,15 +263,6 @@ $statusClass = match ($readingType) {
                             'method' => 'post'
                     ]); ?>
 
-                    <!-- STATUS BADGE -->
-                    <div class="mb-4">
-                        <?php
-                            $statusClass = $stateClasses[$detailReading->readingType ?? 0] ?? 'bg-secondary';
-                            $statusText = $stateOptions[$detailReading->readingType ?? 0] ?? 'DESCONHECIDO';
-                        ?>
-                        <span id="meter-status-badge" class="badge <?= $statusClass ?> px-3 py-2"><?= $statusText ?></span>
-                    </div>
-
                     <div class="row g-1">
                         <div class="col-md-2">
                             <?= $form->field($detailReading, 'id')->textInput(['readonly' => true, 'id' => 'detailReadingId'])->label('Referência') ?>
@@ -321,13 +293,32 @@ $statusClass = match ($readingType) {
                             <?= $form->field($detailReading, 'date')->textInput(['readonly' => true, 'id' => 'detailDate'])->label('Data') ?>
                         </div>
 
-                        <!-- ONLY SHOW IF readingType === 1 -->
-                        <?php if (($detailReading->readingType ?? 0) === 1): ?>
-                            <div class="col-md-5" id="detailProblemContainer">
-                                <input id="detailProblemType" class="form-control" readonly
-                                       value="<?= htmlspecialchars($selectedDetailsProblem->desc ?? '') ?>" placeholder="Problema">
-                            </div>
-                        <?php endif; ?>
+                        <div class="col-md-3">
+                            <?= $form->field($detailReading, 'readingType')->dropDownList([
+                                    0 => 'Sem Problemas',
+                                    1 => 'Com Problemas',
+                            ], [
+                                    'onchange' => new \yii\web\JsExpression("
+            var container = document.getElementById('problemContainerDetails');
+            var input = document.getElementById('detailProblem');
+            if (this.value == 1) {
+                container.style.display = 'block';
+                input.disabled = false;
+            } else {
+                container.style.display = 'none';
+                input.disabled = true;
+                input.value = '';
+            }
+        "),
+                            ])->label('Tipo de Leitura') ?>
+                        </div>
+
+                        <div class="col-md-5" id="problemContainerDetails" style="display:<?= ($detailReading->readingType ?? 0) == 1 ? 'block' : 'none' ?>;">
+                            <?= $form->field($selectedDetailsProblem, 'desc')->textInput([
+                                    'readonly' => true,
+                                    'id' => 'detailProblem'
+                            ])->label('Problema') ?>
+                        </div>
                     </div>
 
                     <!-- FOOTER BUTTONS -->
