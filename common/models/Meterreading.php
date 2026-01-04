@@ -124,7 +124,7 @@ class Meterreading extends \yii\db\ActiveRecord
 
 
     //--------------------MOSQUITTO--------------------
-    public function afterSave($insert, $changedAttributes)
+    /*public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
 
@@ -176,5 +176,5 @@ class Meterreading extends \yii\db\ActiveRecord
         else {
             file_put_contents("debug.output","Time out!");
         }
-    }
+    }*/
 }
