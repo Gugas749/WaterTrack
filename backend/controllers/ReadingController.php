@@ -140,4 +140,22 @@ class ReadingController extends \yii\web\Controller
         Yii::$app->session->setFlash('error', 'Erro ao criar leitura.');
         return $this->redirect(['index']);
     }
+
+    public function actionUpdate($id)
+    {
+        $reading = Meterreading::findOne($id);
+        if (!$reading) {
+            Yii::$app->session->setFlash('error', 'Leitura não encontrado.');
+            return $this->redirect(['index']);
+        }
+
+        if ($reading->load(Yii::$app->request->post()) && $reading->save()) {
+            Yii::$app->session->setFlash('success', 'Leitura atualizada com sucesso!');
+            return $this->redirect(['index']);
+        }
+
+        return $this->render('update', [
+            'reading' => $reading,
+        ]);
+    }
 }

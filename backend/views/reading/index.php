@@ -12,7 +12,6 @@ use yii\widgets\Pjax;
 $this->title = 'Leituras';
 $this->registerCssFile('@web/css/views-index.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
-$this->registerJsFile('@web/js/reading-index.js', ['depends' => [\yii\bootstrap5\BootstrapPluginAsset::class]]);
 ?>
 
 <div class="content">
@@ -248,18 +247,18 @@ $this->registerJsFile('@web/js/reading-index.js', ['depends' => [\yii\bootstrap5
                     ]); ?>
 
                     <div class="row g-1">
+                        <?= $form->field($detailReading, 'tecnicoID')->hiddenInput()->label(false) ?>
+                        <?= $form->field($detailReading, 'meterID')->hiddenInput()->label(false) ?>
                         <div class="col-md-2">
                             <?= $form->field($detailReading, 'id')->textInput(['readonly' => true, 'id' => 'detailReadingId'])->label('Referência') ?>
                         </div>
                         <div class="col-md-4">
-                            <?= $form->field($detailReading, 'tecnicoID')->textInput([
-                                    'value' => htmlspecialchars($technician->username ?? '')
-                            ])->label('Username') ?>
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($technician->username ?? '') ?>" readonly>
                         </div>
                         <div class="col-md-5">
-                            <?= $form->field($detailReading, 'meterID')->textInput([
-                                    'value' => htmlspecialchars($detailReading->meter->address ?? '')
-                            ])->label('Morada do Contador') ?>
+                            <label class="form-label">Morada do Contador</label>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($detailReading->meter->address ?? '') ?>" readonly>
                         </div>
                         <div class="col-md-4">
                             <?= $form->field($detailReading, 'reading')->textInput(['id' => 'detailReadingValue'])->label('Leitura') ?>

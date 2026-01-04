@@ -1,3 +1,16 @@
+<?php
+
+use yii\bootstrap5\Html;
+
+$this->title = 'Dashboard';
+$this->registerCssFile('@web/css/views-index.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
+$this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
+?>
+<?php
+$currentYear = Yii::$app->request->get('year', date('Y')); // default current year
+$prevYear = $currentYear - 1;
+$nextYear = $currentYear + 1;
+?>
 <div class="content">
 
     <!-- Info Boxes -->
@@ -34,6 +47,11 @@
                 <div class="card shadow-sm border-0" style="border-radius:16px;">
                     <div class="card-body">
                         <h6 class="mb-3 fw-bold text-secondary">Gráfico de Leituras por Mês</h6>
+                        <div class="d-flex justify-content-center align-items-center mb-3">
+                            <a href="<?= \yii\helpers\Url::current(['year' => $prevYear]) ?>" class="btn btn-outline-primary me-3">&larr;</a>
+                            <span class="h5 mb-0"><?= $currentYear ?></span>
+                            <a href="<?= \yii\helpers\Url::current(['year' => $nextYear]) ?>" class="btn btn-outline-primary ms-3">&rarr;</a>
+                        </div>
                         <canvas id="chartLeituras" height="250"></canvas>
                     </div>
                 </div>
@@ -45,12 +63,6 @@
                     <div class="card-body text-center">
                         <h6 class="fw-bold text-secondary mb-3">Resumo de Contadores</h6>
                         <canvas id="chartDonut" height="160"></canvas>
-                        <button class="btn btn-sm btn-secondary my-3 rounded-4">Ver Contadores</button>
-                        <div class="d-flex justify-content-center gap-3 mt-2 small">
-                            <span><i class="fas fa-circle text-success mx-1"></i>Ativos</span>
-                            <span><i class="fas fa-circle text-warning mx-1"></i>Com Problema</span>
-                            <span><i class="fas fa-circle text-danger mx-1"></i>Inativos</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -64,42 +76,36 @@
                             <table class="table align-middle">
                                 <thead class="text-muted small">
                                 <tr>
-                                    <th>Referência</th>
+                                    <th>Referência Leitura</th>
+                                    <th>Consumo Acumulado</th>
                                     <th>Leitura</th>
-                                    <th>Data</th>
-                                    <th>Estado</th>
-                                    <th></th>
+                                    <th>Data da Leitura</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                <tr>
-                                    <td>#123456</td>
-                                    <td>10m³</td>
-                                    <td>10/10/2024</td>
-                                    <td><span class="badge bg-success">Validada</span></td>
-                                    <td><a href="#" class="btn btn-sm btn-primary rounded-4">Ver Detalhes</a></td>
-                                </tr>
-                                <tr>
-                                    <td>#123457</td>
-                                    <td>9m³</td>
-                                    <td>09/10/2024</td>
-                                    <td><span class="badge bg-warning text-dark">Pendente</span></td>
-                                    <td><a href="#" class="btn btn-sm btn-primary rounded-4">Ver Detalhes</a></td>
-                                </tr>
-                                <tr>
-                                    <td>#123458</td>
-                                    <td>8m³</td>
-                                    <td>08/10/2024</td>
-                                    <td><span class="badge bg-danger">Erro</span></td>
-                                    <td><a href="#" class="btn btn-sm btn-primary rounded-4">Ver Detalhes</a></td>
-                                </tr>
-                                <tr>
-                                    <td>#123459</td>
-                                    <td>11m³</td>
-                                    <td>07/10/2024</td>
-                                    <td><span class="badge bg-success">Validada</span></td>
-                                    <td><a href="#" class="btn btn-sm btn-primary rounded-4">Ver Detalhes</a></td>
-                                </tr>
+                                    <?php if (!empty($lastReadings)): ?>
+                                    <?php foreach ($lastReadings as $reading): ?>
+                                        <tr>
+                                            <td>
+                                                <?= htmlspecialchars($reading->id) ?>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars($reading->accumulatedConsumption ?? 'N/A') ?>
+                                            </td>
+
+                                            <td>
+                                                <?= htmlspecialchars($reading->reading ?? 'N/A') ?>
+                                            </td>
+
+                                            <td><?= htmlspecialchars($reading->date ?? 'N/A') ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">Nenhuma leitura encontrada.</td>
+                                    </tr>
+                                <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -119,10 +125,21 @@
         new Chart(document.getElementById("chartLeituras"), {
             type: 'bar',
             data: {
-                labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out'],
+                labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'],
                 datasets: [{
                     label: 'Leituras',
-                    data: [120, 180, 150, 200, 250, 230, 280, 310, 270, 320],
+                    data: [<?= count($readingsJan) ?>,
+                        <?= count($readingsFev) ?>,
+                        <?= count($readingsMar) ?>,
+                        <?= count($readingsAbr) ?>,
+                        <?= count($readingsMai) ?>,
+                        <?= count($readingsJun) ?>,
+                        <?= count($readingsJul) ?>,
+                        <?= count($readingsAgo) ?>,
+                        <?= count($readingsSet) ?>,
+                        <?= count($readingsOut) ?>,
+                        <?= count($readingsNov) ?>,
+                        <?= count($readingsDez) ?>],
                     backgroundColor: '#4f46e5',
                     borderRadius: 8
                 }]
@@ -143,7 +160,7 @@
             data: {
                 labels: ['Ativos', 'Com Problema', 'Inativos'],
                 datasets: [{
-                    data: [65, 20, 15],
+                    data: [<?= count($metersActive) ?>, <?= count($metersProblem) ?>, <?= count($metersInactive) ?>],
                     backgroundColor: ['#4f46e5', '#f59e0b', '#ef4444'],
                     cutout: '70%'
                 }]

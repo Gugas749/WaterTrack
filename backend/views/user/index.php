@@ -138,7 +138,7 @@ $statusClass = match ($user->status ?? null) {
                                     </td>
                                     <td>
                                         <?php
-                                        $enterpriseText = count($user->technicianinfos) === 0 ? 'Morador' : 'Técnico';
+                                        $enterpriseText = $user->technicianinfos === null ? 'Morador' : 'Técnico';
                                         ?>
                                         <?= htmlspecialchars($enterpriseText) ?>
                                     </td>
@@ -269,7 +269,7 @@ $statusClass = match ($user->status ?? null) {
 
                     <?php
                     $profile = $detailUser->userprofile ?? new Userprofile();
-                    $techInfos = !empty($detailUser->technicianinfos) ? $detailUser->technicianinfos : [];
+                    $techInfos = $detailUser->technicianinfos === null ? $detailUser->technicianinfos : [];
                     $isTechnician = !empty($techInfos);
                     $techInfo = $isTechnician ? $techInfos[0] : null;
                     $enterpriseList = ArrayHelper::map(Enterprise::find()->all(), 'id', 'name');
