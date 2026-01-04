@@ -67,6 +67,16 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function getMeterproblems()
     {
+        return $this->hasMany(Meterproblem::class, ['tecnicoID' => 'id']);
+    }
+
+    /**
+     * Gets query for [[Meterproblems0]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getMeterproblems0()
+    {
         return $this->hasMany(Meterproblem::class, ['userID' => 'id']);
     }
 
@@ -77,7 +87,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function getMeterreadings()
     {
-        return $this->hasMany(Meterreading::class, ['userID' => 'id']);
+        return $this->hasMany(Meterreading::class, ['tecnicoID' => 'id']);
     }
 
     /**
@@ -97,7 +107,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public function getTechnicianinfos()
     {
-        return $this->hasMany(Technicianinfo::class, ['userID' => 'id']);
+        return $this->hasOne(Technicianinfo::class, ['userID' => 'id']);
     }
 
     public function isTechnician()

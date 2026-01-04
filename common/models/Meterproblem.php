@@ -2,18 +2,18 @@
 
 namespace common\models;
 
-use common\models\User;
-
 /**
  * This is the model class for table "meterproblem".
  *
  * @property int $id
  * @property int $meterID
  * @property int $userID
- * @property string $problemType
- * @property string $desc
+ * @property int|null $tecnicoID
+ * @property int $problemState
+ * @property string $description
  *
  * @property Meter $meter
+ * @property User $tecnico
  * @property User $user
  */
 class Meterproblem extends \yii\db\ActiveRecord
@@ -34,10 +34,12 @@ class Meterproblem extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['meterID', 'userID', 'problemType', 'desc'], 'required'],
-            [['meterID', 'userID'], 'integer'],
-            [['problemType', 'desc'], 'string', 'max' => 100],
+            [['tecnicoID'], 'default', 'value' => null],
+            [['meterID', 'userID', 'problemState', 'description'], 'required'],
+            [['meterID', 'userID', 'tecnicoID', 'problemState'], 'integer'],
+            [['description'], 'string', 'max' => 100],
             [['meterID'], 'exist', 'skipOnError' => true, 'targetClass' => Meter::class, 'targetAttribute' => ['meterID' => 'id']],
+            [['tecnicoID'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['tecnicoID' => 'id']],
             [['userID'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['userID' => 'id']],
         ];
     }
@@ -51,8 +53,9 @@ class Meterproblem extends \yii\db\ActiveRecord
             'id' => 'ID',
             'meterID' => 'Meter ID',
             'userID' => 'User ID',
-            'problemType' => 'Problem Type',
-            'desc' => 'Desc',
+            'tecnicoID' => 'Tecnico ID',
+            'problemState' => 'Problem State',
+            'description' => 'Description',
         ];
     }
 
@@ -64,6 +67,16 @@ class Meterproblem extends \yii\db\ActiveRecord
     public function getMeter()
     {
         return $this->hasOne(Meter::class, ['id' => 'meterID']);
+    }
+
+    /**
+     * Gets query for [[Tecnico]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getTecnico()
+    {
+        return $this->hasOne(User::class, ['id' => 'tecnicoID']);
     }
 
     /**

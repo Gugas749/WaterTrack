@@ -35,13 +35,13 @@ class ReadingController extends \yii\web\Controller
         $readingIdParam = Yii::$app->request->get('id');
         $enterpriseID = Yii::$app->request->get('enterprise_id');
         $meterID = Yii::$app->request->get('meter_id');
+        $selectedMeterIDForTechnicians = Yii::$app->request->get('meterID');
 
         $enterpriseID = $enterpriseID !== '' ? $enterpriseID : null;
         $meterID = $meterID !== '' ? $meterID : null;
 
         $detailReading = null;
         $technician = null;
-        $selectedDetailsProblem = null;
         $meterItems = null;
         $accumulatedConsumptionTotal = 0;
         $waterPressureTotal = 0;
@@ -53,14 +53,15 @@ class ReadingController extends \yii\web\Controller
         $readings = Meterreading::find()->all();
         $problems = Meterproblem::find()->all();
 
+        // Filter detail reading if an ID is provided
         if ($readingIdParam !== null) {
             $detailReading = Meterreading::findOne($readingIdParam);
             if ($detailReading) {
-                $technician = User::findOne($detailReading->userID);
-                $selectedDetailsProblem = Meterproblem::findOne($detailReading->problemID);
+                $technician = User::findOne($detailReading->tecnicoID);
             }
         }
 
+        // Filter readings and meters by enterprise
         if ($enterpriseID !== null) {
             $readings = [];
             $meters = Meter::find()->where(['enterpriseID' => $enterpriseID])->all();
@@ -73,22 +74,42 @@ class ReadingController extends \yii\web\Controller
             $meterItems = ArrayHelper::map($meters, 'id', 'address');
         }
 
+        // Filter readings by specific meter
         if ($enterpriseID !== null && $meterID !== null) {
-            $readings = Meterreading::find()->where(['like', 'meterID', $meterID])->all();
+            $readings = Meterreading::find()->where(['meterID' => $meterID])->all();
         }
 
+        // Calculate averages
         foreach ($readings as $reading) {
             $accumulatedConsumptionTotal += $reading->accumulatedConsumption;
             $waterPressureTotal += $reading->waterPressure;
         }
-
         if(count($readings) > 0){
             $accumulatedConsumption = $accumulatedConsumptionTotal / count($readings);
             $waterPressure = $waterPressureTotal / count($readings);
         }
 
+        // PJAX: Filter technicians based on selected meter
+        $users = [];
+        if ($selectedMeterIDForTechnicians) {
+            $meter = Meter::findOne($selectedMeterIDForTechnicians);
+            if ($meter) {
+                $aux = User::find()->innerJoinWith('technicianinfos')->all();
+
+                foreach ($aux as $user) {
+                    if($user->technicianinfos->enterpriseID == $meter->enterpriseID) {
+                        $users = array_merge($users, [$user]);
+                    }
+                }
+            }
+        } else {
+            $users = User::find()
+                ->innerJoinWith('technicianinfos')
+                ->all();
+        }
+
         return $this->render('index', [
-            'users' => User::find()->all(),
+            'users' => $users,
             'readings' => $readings,
             'meterItems' => $meterItems,
             'selectedEnterpriseId' => $enterpriseID,
@@ -96,12 +117,12 @@ class ReadingController extends \yii\web\Controller
             'enterpriseItems' => ArrayHelper::map($enterprises, 'id', 'name'),
             'detailReading' => $detailReading,
             'technician' => $technician,
-            'selectedDetailsProblem' => $selectedDetailsProblem,
             'addReadingModel' => new Meterreading(),
             'meters' => $meters,
             'problems' => $problems,
             'accumulatedConsumption' => number_format($accumulatedConsumption, 2),
             'waterPressure' => number_format($waterPressure, 2),
+            'selectedMeterIDForTechnicians' => $selectedMeterIDForTechnicians, // send to view for PJAX
         ]);
     }
 

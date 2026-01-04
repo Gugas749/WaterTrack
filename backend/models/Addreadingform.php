@@ -9,7 +9,7 @@ use yii\base\Model;
 class Addreadingform extends Model
 {
     public $meterID;
-    public $userID;
+    public $tecnicoID;
     public $reading;
     public $accumulatedConsumption;
     public $waterPressure;
@@ -21,10 +21,10 @@ class Addreadingform extends Model
     public function rules()
     {
         return [
-            [['meterID', 'userID', 'reading', 'accumulatedConsumption',
+            [['meterID', 'tecnicoID', 'reading', 'accumulatedConsumption',
                 'waterPressure', 'date', 'readingType'], 'required'],
 
-            [['meterID', 'userID', 'readingType', 'problemID'], 'integer'],
+            [['meterID', 'tecnicoID', 'readingType', 'problemID'], 'integer'],
 
             ['problemID', 'filter', 'filter' => function ($v) {
                 return $v === '' ? null : (int)$v;
@@ -40,7 +40,7 @@ class Addreadingform extends Model
     {
         return [
             'meterID' => 'Contador',
-            'userID' => 'Utilizador',
+            'tecnicoID' => 'Utilizador',
             'reading' => 'Leitura',
             'accumulatedConsumption' => 'Consumo Acumulado',
             'waterPressure' => 'Pressão de Água',
@@ -60,21 +60,11 @@ class Addreadingform extends Model
 
         $reading = new Meterreading();
         $reading->meterID = $this->meterID;
-        $reading->userID = $this->userID;
+        $reading->tecnicoID = $this->tecnicoID;
         $reading->reading = $this->reading;
         $reading->accumulatedConsumption = $this->accumulatedConsumption;
         $reading->waterPressure = $this->waterPressure;
-        $reading->desc = $this->desc;
         $reading->date = $this->date;
-        $reading->readingType = $this->readingType;
-
-        if ($this->problemID !== null) {
-            $reading->problemState = 1;
-            $reading->problemID = $this->problemID;
-        } else {
-            $reading->problemState = 0;
-            $reading->problemID = null;
-        }
 
         if (!$reading->save()) {
             Yii::error($reading->errors, __METHOD__);

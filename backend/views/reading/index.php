@@ -120,9 +120,6 @@ $this->registerJsFile('@web/js/reading-index.js', ['depends' => [\yii\bootstrap5
                                     <tr>
                                         <td>
                                             <?= htmlspecialchars($reading->id) ?>
-                                            <?php if($reading->readingType == 1): ?>
-                                                <i class="fas fa-wrench ms-2"></i>
-                                            <?php endif; ?>
                                         </td>
 
                                         <td>
@@ -176,13 +173,25 @@ $this->registerJsFile('@web/js/reading-index.js', ['depends' => [\yii\bootstrap5
 
                 <?= $form->field($addReadingModel, 'meterID')->dropDownList(
                         ArrayHelper::map($meters, 'id', fn($m) => $m->id . ' - ' . $m->address),
-                        ['prompt' => 'Selecione o Contador']
+                        [
+                                'prompt' => 'Selecione o Contador',
+                                'onchange' => '$.pjax.reload({
+            container: "#technicianPjax",
+            url: window.location.href,
+            data: { meterID: $(this).val() },
+            timeout: 1000
+        });'
+                        ]
                 ) ?>
 
-                <?= $form->field($addReadingModel, 'userID')->dropDownList(
+                <?php \yii\widgets\Pjax::begin(['id' => 'technicianPjax']); ?>
+
+                <?= $form->field($addReadingModel, 'tecnicoID')->dropDownList(
                         ArrayHelper::map($users, 'id', fn($u) => $u->id . ' - ' . $u->username),
-                        ['prompt' => 'Selecione o Utilizador']
+                        ['prompt' => 'Selecione o Técnico']
                 ) ?>
+
+                <?php \yii\widgets\Pjax::end(); ?>
 
                 <?= $form->field($addReadingModel, 'reading')->textInput(['placeholder' => 'Valor da Leitura']) ?>
 
@@ -190,32 +199,7 @@ $this->registerJsFile('@web/js/reading-index.js', ['depends' => [\yii\bootstrap5
 
                 <?= $form->field($addReadingModel, 'waterPressure')->textInput(['placeholder' => 'Pressão da Água']) ?>
 
-                <?= $form->field($addReadingModel, 'desc')->textInput(['placeholder' => 'Descrição']) ?>
-
                 <?= $form->field($addReadingModel, 'date')->input('date') ?>
-
-                <?= $form->field($addReadingModel, 'readingType')->dropDownList([
-                        0 => 'Sem Problemas',
-                        1 => 'Com Problemas',
-                ], [
-                        'onchange' => new JsExpression("
-            if (this.value == 1) {
-                document.getElementById('problemContainer').style.display = 'block';
-            } else {
-                document.getElementById('problemContainer').style.display = 'none';
-            }
-        "),
-                ]) ?>
-
-                <!-- Problema apenas visível se readingType = 1 -->
-                <div id="problemContainer" style="display:<?= $addReadingModel->readingType == 1 ? 'block' : 'none' ?>;">
-                    <?= $form->field($addReadingModel, 'problemID')->dropDownList(
-                            ArrayHelper::map($problems, 'id', 'desc'),
-                            ['prompt' => 'Selecione o Problema']
-                    ) ?>
-                </div>
-
-
 
                 <div class="text-end mt-3">
                     <?= Html::submitButton('Criar Leitura', ['class' => 'btn btn-primary']) ?>
@@ -268,7 +252,7 @@ $this->registerJsFile('@web/js/reading-index.js', ['depends' => [\yii\bootstrap5
                             <?= $form->field($detailReading, 'id')->textInput(['readonly' => true, 'id' => 'detailReadingId'])->label('Referência') ?>
                         </div>
                         <div class="col-md-4">
-                            <?= $form->field($detailReading, 'userID')->textInput([
+                            <?= $form->field($detailReading, 'tecnicoID')->textInput([
                                     'value' => htmlspecialchars($technician->username ?? '')
                             ])->label('Username') ?>
                         </div>
@@ -286,38 +270,8 @@ $this->registerJsFile('@web/js/reading-index.js', ['depends' => [\yii\bootstrap5
                         <div class="col-md-3">
                             <?= $form->field($detailReading, 'waterPressure')->textInput(['id' => 'detailWaterPressure'])->label('Pressão da Água') ?>
                         </div>
-                        <div class="col-md-11">
-                            <?= $form->field($detailReading, 'desc')->textInput(['id' => 'detailDesc'])->label('Descrição') ?>
-                        </div>
                         <div class="col-md-3">
                             <?= $form->field($detailReading, 'date')->textInput(['readonly' => true, 'id' => 'detailDate'])->label('Data') ?>
-                        </div>
-
-                        <div class="col-md-3">
-                            <?= $form->field($detailReading, 'readingType')->dropDownList([
-                                    0 => 'Sem Problemas',
-                                    1 => 'Com Problemas',
-                            ], [
-                                    'onchange' => new \yii\web\JsExpression("
-            var container = document.getElementById('problemContainerDetails');
-            var input = document.getElementById('detailProblem');
-            if (this.value == 1) {
-                container.style.display = 'block';
-                input.disabled = false;
-            } else {
-                container.style.display = 'none';
-                input.disabled = true;
-                input.value = '';
-            }
-        "),
-                            ])->label('Tipo de Leitura') ?>
-                        </div>
-
-                        <div class="col-md-5" id="problemContainerDetails" style="display:<?= ($detailReading->readingType ?? 0) == 1 ? 'block' : 'none' ?>;">
-                            <?= $form->field($selectedDetailsProblem, 'desc')->textInput([
-                                    'readonly' => true,
-                                    'id' => 'detailProblem'
-                            ])->label('Problema') ?>
                         </div>
                     </div>
 

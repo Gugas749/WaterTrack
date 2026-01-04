@@ -126,7 +126,4 @@ class Meter extends \yii\db\ActiveRecord
     {
         return $this->hasOne(User::class, ['id' => 'userID']);
     }
-
-
-
 }
