@@ -32,9 +32,19 @@ class ReadingController extends Controller
         $meterIdParam   = Yii::$app->request->get('meterID');
         $readingIdParam = Yii::$app->request->get('id');
 
-        // técnicos podem ver todas; moradores só dos seus contadores
         if ($isTechnician) {
-            $query = Meterreading::find();
+            $enterpriseIds = \common\models\Technicianinfo::find()
+                ->select('enterpriseID')
+                ->where(['userID' => $user->id])
+                ->column();
+
+            $meterIds = \common\models\Meter::find()
+                ->where(['enterpriseID' => $enterpriseIds])
+                ->select('id')
+                ->column();
+
+            $query = Meterreading::find()
+                ->where(['meterID' => $meterIds]);
         } else {
             $query = Meterreading::find()
                 ->joinWith('meter')
@@ -47,16 +57,18 @@ class ReadingController extends Controller
 
         $readings = $query->all();
 
-        // detalhe — garante que o detail pertence ao user, excepto se technician
         $detailReading = null;
         if ($readingIdParam) {
             $detailReading = Meterreading::findOne($readingIdParam);
             if ($detailReading) {
-                if (
-                    !$isTechnician &&
-                    $detailReading->meter->userID !== $user->id
-                ) {
-                    $detailReading = null;
+                if ($isTechnician) {
+                    if (!in_array($detailReading->meterID, $meterIds)) {
+                        $detailReading = null;
+                    }
+                } else {
+                    if ($detailReading->meter->userID !== $user->id) {
+                        $detailReading = null;
+                    }
                 }
             }
         }
@@ -67,6 +79,7 @@ class ReadingController extends Controller
             'isTechnician'  => $isTechnician,
         ]);
     }
+
 
     public function actionCreate()
     {

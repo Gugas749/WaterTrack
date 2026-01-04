@@ -6,6 +6,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 use common\models\Enterprise;
 use common\models\Userprofile;
+use yii\web\JsExpression;
 use yii\widgets\Pjax;
 
 $this->title = 'Leituras';
@@ -172,6 +173,96 @@ $statusClass = match ($readingType) {
             </div>
         </div>
         <?php Pjax::end(); ?>
+
+        <!-- RIGHT PANEL-->
+        <div id="rightPanel" class="right-panel bg-white shadow" style="display:none;">
+            <div class="right-panel-header d-flex justify-content-between align-items-center p-3 border-bottom">
+                <h5 class="fw-bold text-dark">Adicionar Leitura</h5>
+                <button type="button" class="btn btn-sm btn-light" id="closeRightPanel">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="p-3">
+                <?php $form = \yii\widgets\ActiveForm::begin([
+                        'id' => 'add-reading-form',
+                        'action' => ['reading/create'],
+                        'method' => 'post'
+                ]); ?>
+
+                <?= $form->field($addReadingModel, 'meterID')->dropDownList(
+                        ArrayHelper::map($meters, 'id', fn($m) => $m->id . ' - ' . $m->address),
+                        ['prompt' => 'Selecione o Contador']
+                ) ?>
+
+                <?= $form->field($addReadingModel, 'userID')->dropDownList(
+                        ArrayHelper::map($users, 'id', fn($u) => $u->id . ' - ' . $u->username),
+                        ['prompt' => 'Selecione o Utilizador']
+                ) ?>
+
+                <?= $form->field($addReadingModel, 'reading')->textInput(['placeholder' => 'Valor da Leitura']) ?>
+
+                <?= $form->field($addReadingModel, 'accumulatedConsumption')->textInput(['placeholder' => 'Consumo Acumulado']) ?>
+
+                <?= $form->field($addReadingModel, 'waterPressure')->textInput(['placeholder' => 'Pressão da Água']) ?>
+
+                <?= $form->field($addReadingModel, 'desc')->textInput(['placeholder' => 'Descrição']) ?>
+
+                <?= $form->field($addReadingModel, 'date')->input('date') ?>
+
+                <?= $form->field($addReadingModel, 'readingType')->dropDownList([
+                        0 => 'Sem Problemas',
+                        1 => 'Com Problemas',
+                ], [
+                        'prompt' => 'Selecione o Tipo de Leitura',
+                        'onchange' => new JsExpression("
+            if (this.value == 1) {
+                document.getElementById('problemContainer').style.display = 'block';
+            } else {
+                document.getElementById('problemContainer').style.display = 'none';
+            }
+        "),
+                ]) ?>
+
+                <!-- Problema apenas visível se readingType = 1 -->
+                <div id="problemContainer" style="display:<?= $addReadingModel->readingType == 1 ? 'block' : 'none' ?>;">
+                    <?= $form->field($addReadingModel, 'problemState', [
+                            'enableClientValidation' => false
+                    ])->dropDownList(
+                            ArrayHelper::map($problems, 'id', 'desc'),
+                            ['prompt' => $addReadingModel->readingType == 1 ? 'Selecione o Problema' : '0']
+                    ) ?>
+                </div>
+
+
+
+                <div class="text-end mt-3">
+                    <?= Html::submitButton('Criar Leitura', ['class' => 'btn btn-primary']) ?>
+                </div>
+
+                <?php \yii\widgets\ActiveForm::end(); ?>
+            </div>
+        </div>
+
+        <script>
+            $(document).ready(function() {
+                $('#closeRightPanel').click(function() {
+                    $('#rightPanel').hide();
+                    $('#overlay').hide();
+                    $('body').css('overflow', 'auto');
+                });
+
+                // Mostrar campo Problema apenas se readingType == 1
+                $('#addreadingmodel-readingtype').change(function() {
+                    if ($(this).val() == 1) {
+                        $('#problemContainer').show();
+                    } else {
+                        $('#problemContainer').hide();
+                    }
+                });
+            });
+        </script>
+
         <!-- DETAIL PANEL -->
         <?php if ($detailReading): ?>
             <div id="detailPanel" class="detail-panel bg-white shadow" style="display:none;">

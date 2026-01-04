@@ -49,8 +49,9 @@ $problemStateOptions = [
             <h4 class="fw-bold text-dark">Leituras de Contadores</h4>
 
             <?php if (!empty($isTechnician) && $isTechnician): ?>
-                <button class="btn btn-primary"
-                        onclick="document.getElementById('addPanel').style.display='block'; document.getElementById('overlay').style.display='block'">
+                <button class="btn btn-primary mb-3"
+                        data-toggle="right-panel"
+                        style="background-color:#4f46e5; border:none;">
                     <i class="fas fa-plus me-1"></i> Nova Leitura
                 </button>
             <?php endif; ?>
@@ -112,75 +113,81 @@ $problemStateOptions = [
             </div>
         </div>
 
-        <!-- ADD PANEL -->
         <?php if (!empty($isTechnician) && $isTechnician): ?>
+            <div id="rightPanel" class="right-panel bg-white shadow" style="display:none;">
+                <div class="right-panel-header d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <h5 class="fw-bold text-dark">Nova Leitura</h5>
+                    <button type="button" class="btn btn-sm btn-light" id="closeRightPanel">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
 
-            <div id="addPanel" class="detail-panel show bg-white shadow" style="display:none;">
-                <div class="modal-content p-4 rounded-4">
-
-                    <div class="d-flex justify-content-between mb-3">
-                        <h5 class="fw-bold">Nova Leitura</h5>
-                        <button class="btn btn-sm btn-light" onclick="closePanels()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <?php $form = ActiveForm::begin([
-                        'action' => ['reading/create'],
-                        'method' => 'post'
+                <div class="p-3">
+                    <?php $form = \yii\widgets\ActiveForm::begin([
+                            'id' => 'add-reading-form',
+                            'action' => ['reading/create'],
+                            'method' => 'post'
                     ]); ?>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <?= $form->field($addReading, 'meterID')
-                                ->dropDownList($meterOptions, ['prompt' => 'Selecione o contador'])?>
-                        </div>
-
-                        <div class="col-md-6">
-                            <?= $form->field($addReading, 'userID')->hiddenInput()->label(false) ?>
-                        </div>
-                    </div>
-
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-4">
-                            <?= $form->field($addReading, 'reading') ?>
-                        </div>
-                        <div class="col-md-4">
-                            <?= $form->field($addReading, 'accumulatedConsumption') ?>
-                        </div>
-                        <div class="col-md-4">
-                            <?= $form->field($addReading, 'waterPressure') ?>
-                        </div>
-                    </div>
-
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <?= $form->field($addReading, 'readingType')
-                                ->dropDownList($readingTypeOptions) ?>
-                        </div>
-                        <div class="col-md-6">
-                            <?= $form->field($addReading, 'problemState')
-                                ->dropDownList($problemStateOptions) ?>
-                        </div>
-                    </div>
-
+                    <!-- CONTADOR -->
                     <div class="mb-3">
-                        <?= $form->field($addReading, 'desc')->textarea() ?>
+                        <?= $form->field($addReading, 'meterID')
+                                ->dropDownList($meterOptions, ['prompt' => 'Selecione o contador']) ?>
                     </div>
 
-                    <div class="mb-3">
-                        <?= $form->field($addReading, 'date')->input('date') ?>
-                    </div>
+                    <?= $form->field($addReading, 'userID')->hiddenInput()->label(false) ?>
+                    <?= $form->field($addReading, 'reading') ?>
+                    <?= $form->field($addReading, 'accumulatedConsumption') ?>
+                    <?= $form->field($addReading, 'waterPressure') ?>
+                    <?= $form->field($addReading, 'readingType')->dropDownList($readingTypeOptions) ?>
+                    <?= $form->field($addReading, 'problemState')->dropDownList($problemStateOptions) ?>
+                    <?= $form->field($addReading, 'desc')->textarea() ?>
+                    <?= $form->field($addReading, 'date')->input('date') ?>
 
-                    <div class="d-flex justify-content-end">
+                    <div class="text-end mt-3">
                         <?= Html::submitButton('Criar Leitura', ['class' => 'btn btn-primary']) ?>
                     </div>
 
-                    <?php ActiveForm::end(); ?>
-
+                    <?php \yii\widgets\ActiveForm::end(); ?>
                 </div>
             </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const openBtn = document.querySelector('[data-toggle="right-panel"]');
+                    const panel = document.getElementById('rightPanel');
+                    const closeBtn = document.getElementById('closeRightPanel');
+                    let overlay = document.getElementById('overlay');
+
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.id = 'overlay';
+                        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;display:none;';
+                        document.body.appendChild(overlay);
+                    }
+
+                    openBtn.addEventListener('click', () => {
+                        panel.style.display = 'block';
+                        overlay.style.display = 'block';
+                        document.body.style.overflow = 'hidden';
+                    });
+
+                    closeBtn.addEventListener('click', () => {
+                        panel.style.display = 'none';
+                        overlay.style.display = 'none';
+                        document.body.style.overflow = '';
+                    });
+
+                    overlay.addEventListener('click', () => {
+                        panel.style.display = 'none';
+                        overlay.style.display = 'none';
+                        document.body.style.overflow = '';
+                    });
+                });
+            </script>
+
         <?php endif; ?>
+
 
         <!-- DETAIL PANEL -->
         <?php if ($detailReading): ?>
