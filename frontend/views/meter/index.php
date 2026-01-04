@@ -71,7 +71,7 @@ $measureUnityOptions = [
 
                 <!-- ADD BUTTON (apenas técnico) -->
                 <?php if (!empty($isTechnician) && $isTechnician): ?>
-                    <button class="btn btn-primary" data-toggle="right-panel"
+                    <button class="btn btn-danger" data-toggle="right-panel"
                             style="background-color:#4f46e5; border:none;">
                         <i class="fas fa-plus me-1"></i> Adicionar Contador
                     </button>
@@ -161,32 +161,41 @@ $measureUnityOptions = [
                             'method' => 'post'
                     ]); ?>
 
-                    <?= $form->field($addMeterModel, 'address')->textInput(['placeholder' => 'Morada']) ?>
+                    <h6 class="fw-bold text-dark m-2">Morada</h6>
+                    <?= $form->field($addMeterModel, 'address')->textInput(['placeholder' => 'Indique a morada'])->label(false) ?>
 
+                    <h6 class="fw-bold text-dark m-2">Morador/Cliente</h6>
                     <?= $form->field($addMeterModel, 'userID')->dropDownList(
                             ArrayHelper::map($users, 'id', fn($u) => $u->id . ' - ' . $u->username),
-                            ['prompt' => 'Selecione o Utilizador']
-                    ) ?>
+                            ['prompt' => 'Selecione o utilizador']
+                    )->label(false) ?>
 
+                    <h6 class="fw-bold text-dark m-2">Tipo de Contador</h6>
                     <?= $form->field($addMeterModel, 'meterTypeID')->dropDownList(
                             ArrayHelper::map($meterTypes, 'id', fn($t) => $t->id . ' - ' . $t->description),
-                            ['prompt' => 'Selecione o Tipo de Contador']
-                    ) ?>
+                            ['prompt' => 'Selecione o tipo de contador']
+                    )->label(false) ?>
 
-                    <?= $form->field($addMeterModel, 'class')->dropDownList($classOptions, ['prompt' => 'Selecione a Classe']) ?>
+                    <h6 class="fw-bold text-dark m-2">Classe do contador</h6>
+                    <?= $form->field($addMeterModel, 'class')->dropDownList($classOptions, ['prompt' => 'Selecione a classe'])->label(false) ?>
 
-                    <?= $form->field($addMeterModel, 'instalationDate')->input('date') ?>
+                    <h6 class="fw-bold text-dark m-2">Data de Instalação</h6>
+                    <?= $form->field($addMeterModel, 'instalationDate')->input('date')->label(false) ?>
 
-                    <?= $form->field($addMeterModel, 'maxCapacity')->textInput(['placeholder' => 'Capacidade Máxima']) ?>
+                    <h6 class="fw-bold text-dark m-2">Capacidade Máxima</h6>
+                    <?= $form->field($addMeterModel, 'maxCapacity')->textInput(['placeholder' => 'Selecione a capacidade máxima'])->label(false) ?>
 
-                    <?= $form->field($addMeterModel, 'measureUnity')->dropDownList($measureUnityOptions, ['prompt' => 'Selecione a Unidade de Medida']) ?>
+                    <h6 class="fw-bold text-dark m-2">Unidade de Medida</h6>
+                    <?= $form->field($addMeterModel, 'measureUnity')->dropDownList($measureUnityOptions, ['prompt' => 'Selecione a unidade de medida'])->label(false) ?>
 
-                    <?= $form->field($addMeterModel, 'supportedTemperature')->textInput(['placeholder' => 'Temperatura Suportada']) ?>
+                    <h6 class="fw-bold text-dark m-2">Temperatura Suportada</h6>
+                    <?= $form->field($addMeterModel, 'supportedTemperature')->textInput(['placeholder' => 'Indique a temperatura suportada'])->label(false) ?>
 
-                    <?= $form->field($addMeterModel, 'state')->dropDownList($stateOptions, ['prompt' => 'Selecione o Estado']) ?>
+                    <h6 class="fw-bold text-dark m-2">Estado</h6>
+                    <?= $form->field($addMeterModel, 'state')->dropDownList($stateOptions, ['prompt' => 'Indique o estado'])->label(false) ?>
 
-                    <div class="text-end mt-3">
-                        <?= Html::submitButton('Criar Contador', ['class' => 'btn btn-primary']) ?>
+                    <div class="text-center mt-3">
+                        <?= Html::submitButton('Criar Contador', ['class' => 'btn btn-danger ', 'style' => 'background-color:#4f46e5; border:none;']) ?>
                     </div>
 
                     <?php \yii\widgets\ActiveForm::end(); ?>
@@ -225,23 +234,18 @@ $measureUnityOptions = [
                     </div>
 
                     <?php
-                    // Se for técnico, usamos um ActiveForm que envia para meter/update
                     if (!empty($isTechnician) && $isTechnician) {
                         $detailForm = ActiveForm::begin([
-                                'id' => 'update-meter-form',
+                                'id' => 'update-meter-form-' . $detailMeter->id,
                                 'action' => ['meter/update', 'id' => $detailMeter->id],
                                 'method' => 'post',
                         ]);
                     } else {
-                        // apenas para exibir (sem form)
                         $detailForm = null;
                     }
                     ?>
 
-                    <!-- IDENTIFICAÇÃO -->
-                    <h6 class="fw-bold text-secondary mt-3 mb-2">Identificação</h6>
-
-                    <div class="row g-2 mb-3">
+                    <div class="row g-2">
                         <div class="col-md-3">
                             <label class="form-label">Referência</label>
                             <input class="form-control" readonly value="<?= Html::encode($detailMeter->id) ?>">
@@ -280,22 +284,14 @@ $measureUnityOptions = [
                         </div>
                     </div>
 
-                    <!-- LOCALIZAÇÃO -->
-                    <h6 class="fw-bold text-secondary mt-3 mb-2">Localização</h6>
-
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Morada</label>
-                            <?php if (!empty($isTechnician) && $isTechnician): ?>
-                                <?= $detailForm->field($detailMeter, 'address')->textInput()->label(false) ?>
-                            <?php else: ?>
-                                <input class="form-control" readonly value="<?= Html::encode($detailMeter->address) ?>">
-                            <?php endif; ?>
-                        </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Morada</label>
+                        <?php if (!empty($isTechnician) && $isTechnician): ?>
+                            <?= $detailForm->field($detailMeter, 'address')->textInput()->label(false) ?>
+                        <?php else: ?>
+                            <input class="form-control" readonly value="<?= Html::encode($detailMeter->address) ?>">
+                        <?php endif; ?>
                     </div>
-
-                    <!-- ESPECIFICAÇÕES -->
-                    <h6 class="fw-bold text-secondary mt-3 mb-2">Especificações Técnicas</h6>
 
                     <div class="row g-2 mb-3">
                         <div class="col-md-4">
@@ -326,9 +322,6 @@ $measureUnityOptions = [
                         </div>
                     </div>
 
-                    <!-- DATAS -->
-                    <h6 class="fw-bold text-secondary mt-3 mb-2">Datas</h6>
-
                     <div class="row g-2 mb-4">
                         <div class="col-md-4">
                             <label class="form-label">Data de Instalação</label>
@@ -346,7 +339,7 @@ $measureUnityOptions = [
                         <button type="button" class="btn btn-light px-4" onclick="closePanels()">Fechar</button>
 
                         <?php if (!empty($isTechnician) && $isTechnician): ?>
-                            <?= Html::submitButton('Salvar', ['class' => 'btn btn-primary px-4']) ?>
+                            <?= Html::submitButton('Editar', ['class' => 'btn btn-danger px-4', 'style' => 'background-color:#4f46e5; border:none;']) ?>
                         <?php endif; ?>
                     </div>
 

@@ -43,7 +43,7 @@ $problemTypeOptions = [
             <h4 class="fw-bold text-dark">Relatórios de Problemas</h4>
 
             <?php if ($isTechnician): ?>
-                <button class="btn btn-danger"
+                <button class="btn btn-danger" style="background-color:#4f46e5; border:none;"
                         onclick="document.getElementById('addPanel').style.display='block';
                                  document.getElementById('overlay').style.display='block'">
                     <i class="fas fa-plus me-1"></i> Novo Relatório

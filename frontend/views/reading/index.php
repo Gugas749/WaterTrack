@@ -49,7 +49,7 @@ $problemStateOptions = [
             <h4 class="fw-bold text-dark">Leituras de Contadores</h4>
 
             <?php if (!empty($isTechnician) && $isTechnician): ?>
-                <button class="btn btn-primary mb-3"
+                <button class="btn btn-danger"
                         data-toggle="right-panel"
                         style="background-color:#4f46e5; border:none;">
                     <i class="fas fa-plus me-1"></i> Nova Leitura

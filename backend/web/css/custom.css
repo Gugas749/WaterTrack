@@ -1,14 +1,11 @@
-/* Espaçamento entre itens do menu lateral */
 .main-sidebar .nav-sidebar > .nav-item {
     margin-bottom: 8px;
 }
 
-/* Corrige altura e comportamento de scroll da sidebar */
 .main-sidebar .sidebar {
     overflow-y: auto;
 }
 
-/* Painel do utilizador bem separado */
 .main-sidebar .user-panel {
     background-color: rgba(255,255,255,0.05);
     border-top: 1px solid rgba(255,255,255,0.1);

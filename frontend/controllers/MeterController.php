@@ -111,7 +111,6 @@ class MeterController extends Controller
         return $this->redirect(['index']);
     }
 
-
     public function actionUpdate($id)
     {
         $model = Meter::findOne($id);
@@ -120,14 +119,26 @@ class MeterController extends Controller
             return $this->redirect(['index']);
         }
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Contador atualizada com sucesso!');
-            return $this->redirect(['index']);
+        $oldState = $model->state;
+
+        if ($model->load(Yii::$app->request->post())) {
+
+            if ($model->state == 0 && $oldState != 0) {
+                $model->shutdownDate = date('Y-m-d');
+            } elseif ($model->state != 0 && $oldState == 0) {
+                $model->shutdownDate = null;
+            }
+
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', 'Contador atualizado com sucesso!');
+                return $this->redirect(['index']);
+            }
         }
 
         return $this->render('update', [
             'model' => $model,
         ]);
     }
+
 
 }
