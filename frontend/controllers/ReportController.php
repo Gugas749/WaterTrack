@@ -34,6 +34,15 @@ class ReportController extends Controller
         $user = Yii::$app->user->identity;
         $isTechnician = $user->isTechnician();
 
+        $search = Yii::$app->request->get('q');
+
+        // Obter todos os relatórios
+        $query = Meterproblem::find()->orderBy(['id' => SORT_DESC]);
+
+        if ($search != null) {
+            $query->joinWith('meter')->andWhere(['like', 'meter.address', $search]);
+        }
+
         // Obter contadores e problemas
         if ($isTechnician) {
             $enterpriseIds = Technicianinfo::find()
@@ -42,17 +51,13 @@ class ReportController extends Controller
                 ->column();
 
             $meters = Meter::find()->where(['enterpriseID' => $enterpriseIds])->all();
-            $problems = Meterproblem::find()
-                ->where(['meterID' => array_column($meters, 'id')])
-                ->orderBy(['id' => SORT_DESC])
-                ->all();
+            $query->where(['meterID' => array_column($meters, 'id')])->orderBy(['id' => SORT_DESC]);
         } else {
             $meters = Meter::find()->where(['userID' => $user->id])->all();
-            $problems = Meterproblem::find()
-                ->where(['userID' => $user->id])
-                ->orderBy(['id' => SORT_DESC])
-                ->all();
+            $query->where(['userID' => $user->id])->orderBy(['id' => SORT_DESC]);
         }
+
+        $reports = $query->all();
 
         // Modelo para o right panel
         $model = new Meterproblem();
@@ -77,11 +82,12 @@ class ReportController extends Controller
         }
 
         return $this->render('index', [
-            'reports' => $problems,
+            'reports' => $reports,
             'isTechnician' => $isTechnician,
             'model' => $model,
             'meters' => $meters,
             'detailProblem' => $detailProblem,
+            'search' => $search,
         ]);
     }
     public function actionCreate()

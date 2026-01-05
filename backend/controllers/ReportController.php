@@ -56,7 +56,7 @@ class ReportController extends Controller
         $model = new Meterproblem();
 
         // Detalhe do relatório, se id for fornecido
-        if($detailId != null || $detailId > 0){
+        if($detailId != null && $detailId > 0){
             $detailProblem = Meterproblem::findOne($detailId);
             $detailsMeter = $detailProblem->meter;
             $detailsEnterprise = Enterprise::findOne($detailsMeter->enterprise);

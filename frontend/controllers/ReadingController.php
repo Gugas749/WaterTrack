@@ -34,6 +34,7 @@ class ReadingController extends Controller
         $user = Yii::$app->user->identity;
         $isTechnician = $user->isTechnician();
 
+        $selectedMeterId = Yii::$app->request->get('meter_id');
         $readingId = Yii::$app->request->get('id');
 
         if ($isTechnician) {
@@ -82,12 +83,26 @@ class ReadingController extends Controller
             ? User::findOne($detailReading->tecnicoID)
             : null;
 
+        $meterItems = ArrayHelper::map($meters, 'id', 'address');
+
+        if($selectedMeterId != null && $selectedMeterId > 0){
+            $aux = [];
+            foreach ($readings as $reading) {
+                if($reading->meterID == $selectedMeterId){
+                    $aux[] = $reading;
+                }
+            }
+            $readings = $aux;
+        }
+
         return $this->render('index', [
             'readings' => $readings,
             'detailReading' => $detailReading,
             'isTechnician' => $isTechnician,
             'meterOptions' => $meterOptions,
             'technician' => $technician,
+            'selectedMeterId' => $selectedMeterId,
+            'meterItems' => $meterItems,
         ]);
     }
 

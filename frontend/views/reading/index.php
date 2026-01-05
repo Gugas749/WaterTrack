@@ -4,6 +4,7 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 use common\models\Meterreading;
+use yii\widgets\Pjax;
 
 $this->title = 'Leituras de Contadores';
 $this->params['breadcrumbs'][] = $this->title;
@@ -16,9 +17,37 @@ $addReading = new Meterreading();
 
 <div class="content">
     <div class="container-fluid py-4" style="background-color:#f9fafb; min-height:100vh;">
+        <?php Pjax::begin([
+                'id' => 'readingsTable',
+                'timeout' => 5000,
+                'enablePushState' => false, // important
+        ]); ?>
         <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4 px-3">
             <h4 class="fw-bold text-dark">Leituras de Contadores</h4>
+
+            <!-- Dropdown selection -->
+            <?php $form = ActiveForm::begin([
+                    'method' => 'get',
+                    'action' => ['reading/index'],
+                    'options' => [
+                            'data' => ['pjax' => true],
+                            'class' => 'd-flex align-items-center gap-3'
+                    ],
+            ]); ?>
+
+            <?= Html::dropDownList(
+                    'meter_id',
+                    $selectedMeterId ?? null,
+                    $meterItems ?? [],
+                    [
+                            'class' => 'form-select',
+                            'prompt' => 'Selecione um Contador',
+                            'onchange' => '$("#readingsTable form").submit();',
+                    ]
+            ) ?>
+
+            <?php ActiveForm::end(); ?>
 
             <?php if ($isTechnician): ?>
                 <button class="btn btn-danger"
@@ -28,7 +57,6 @@ $addReading = new Meterreading();
                 </button>
             <?php endif; ?>
         </div>
-
         <!-- Table -->
         <div class="card shadow-sm border-0 mx-3" style="border-radius:16px;">
             <div class="card-body">
@@ -53,7 +81,7 @@ $addReading = new Meterreading();
                         <?php if ($readings): ?>
                             <?php foreach ($readings as $reading): ?>
                                 <tr>
-                                    <td><?= 'Contador #' . $reading->meterID ?></td>
+                                    <td><?= $reading->meter->address ?></td>
                                     <td><?= Html::encode($reading->reading) ?></td>
                                     <td><?= Html::encode($reading->accumulatedConsumption) ?></td>
                                     <td><?= Html::encode($reading->date) ?></td>
@@ -79,7 +107,7 @@ $addReading = new Meterreading();
 
             </div>
         </div>
-
+        <?php Pjax::end(); ?>
         <!-- Right Panel (ADD) -->
         <?php if ($isTechnician): ?>
             <div id="rightPanel" class="right-panel bg-white shadow" style="display:none;">
