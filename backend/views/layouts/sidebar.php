@@ -28,6 +28,7 @@ $this->registerCssFile('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font
                             ['label' => 'Utilizadores', 'icon' => 'user', 'url' => ['user/index']],
                             ['label' => 'Contadores', 'icon' => 'tint', 'url' => ['meter/index']],
                             ['label' => 'Leituras', 'icon' => 'book-open', 'url' => ['reading/index']],
+                            ['label' => 'Reports', 'icon' => 'bug', 'url' => ['report/index']],
                             ['label' => 'Empresas', 'icon' => 'building', 'url' => ['enterprise/index']],
                             ['label' => 'Extras', 'icon' => 'cube', 'url' => ['extras/index']],
                             ['label' => 'Definições', 'icon' => 'cog', 'url' => ['settings/index']],

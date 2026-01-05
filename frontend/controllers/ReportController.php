@@ -155,7 +155,7 @@ class ReportController extends Controller
                 $meter->save(false);
 
                 Yii::$app->session->setFlash('success', 'Problema atualizado com sucesso.');
-                return $this->redirect(['index']);
+                return $this->redirect(['index', 'id' => $problem->id]);
             }
         }
 
