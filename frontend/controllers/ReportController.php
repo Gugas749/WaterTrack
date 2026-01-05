@@ -50,11 +50,17 @@ class ReportController extends Controller
                 ->where(['userID' => $user->id])
                 ->column();
 
-            $meters = Meter::find()->where(['enterpriseID' => $enterpriseIds])->all();
-            $query->where(['meterID' => array_column($meters, 'id')])->orderBy(['id' => SORT_DESC]);
+            $meters = Meter::find()
+                ->where(['enterpriseID' => $enterpriseIds])
+                ->all();
+
+            $query->andWhere(['meterID' => array_column($meters, 'id')]);
         } else {
-            $meters = Meter::find()->where(['userID' => $user->id])->all();
-            $query->where(['userID' => $user->id])->orderBy(['id' => SORT_DESC]);
+            $meters = Meter::find()
+                ->where(['userID' => $user->id])
+                ->all();
+
+            $query->andWhere(['userID' => $user->id]);
         }
 
         $reports = $query->all();
