@@ -23,39 +23,41 @@ $addReading = new Meterreading();
                 'enablePushState' => false, // important
         ]); ?>
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4 px-3">
+        <div class="d-flex align-items-center mb-4 px-3">
+
             <h4 class="fw-bold text-dark">Leituras de Contadores</h4>
 
-            <!-- Dropdown selection -->
-            <?php $form = ActiveForm::begin([
-                    'method' => 'get',
-                    'action' => ['reading/index'],
-                    'options' => [
-                            'data' => ['pjax' => true],
-                            'class' => 'd-flex align-items-center gap-3'
-                    ],
-            ]); ?>
+            <div class="d-flex align-items-center gap-3 ms-auto">
+                <?php $form = ActiveForm::begin([
+                        'method' => 'get',
+                        'action' => ['reading/index'],
+                        'options' => [
+                                'data' => ['pjax' => true],
+                                'class' => 'd-flex align-items-center gap-3'
+                        ],
+                ]); ?>
 
-            <?= Html::dropDownList(
-                    'meter_id',
-                    $selectedMeterId ?? null,
-                    $meterItems ?? [],
-                    [
-                            'class' => 'form-select',
-                            'prompt' => 'Selecione um Contador',
-                            'onchange' => '$("#readingsTable form").submit();',
-                    ]
-            ) ?>
+                <?= Html::dropDownList(
+                        'meter_id',
+                        $selectedMeterId ?? null,
+                        $meterItems ?? [],
+                        [
+                                'class' => 'form-select',
+                                'prompt' => 'Selecione um Contador',
+                                'onchange' => '$("#readingsTable form").submit();',
+                        ]
+                ) ?>
 
-            <?php ActiveForm::end(); ?>
+                <?php ActiveForm::end(); ?>
 
-            <?php if ($isTechnician): ?>
-                <button class="btn btn-danger"
-                        data-toggle="right-panel"
-                        style="background-color:#4f46e5; border:none;">
-                    <i class="fas fa-plus me-1"></i> Nova Leitura
-                </button>
-            <?php endif; ?>
+                <?php if ($isTechnician): ?>
+                    <button class="btn btn-danger"
+                            data-toggle="right-panel"
+                            style="background-color:#4f46e5; border:none;">
+                        <i class="fas fa-plus me-1"></i> Nova Leitura
+                    </button>
+                <?php endif; ?>
+            </div>
         </div>
         <!-- Table -->
         <div class="card shadow-sm border-0 mx-3" style="border-radius:16px;">
@@ -149,38 +151,57 @@ $addReading = new Meterreading();
             </div>
 
             <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    const openBtn = document.querySelector('[data-toggle="right-panel"]');
-                    const panel = document.getElementById('rightPanel');
-                    const closeBtn = document.getElementById('closeRightPanel');
-                    let overlay = document.getElementById('overlay');
+                document.addEventListener('click', function(event) {
+                    const target = event.target;
 
-                    if (!overlay) {
-                        overlay = document.createElement('div');
-                        overlay.id = 'overlay';
-                        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;display:none;';
-                        document.body.appendChild(overlay);
-                    }
+                    // Abrir painel Nova Leitura
+                    if (target.closest('[data-toggle="right-panel"]')) {
+                        const panel = document.getElementById('rightPanel');
+                        if (!panel) return; // se não existir, sai
 
-                    openBtn.addEventListener('click', () => {
+                        let overlay = document.getElementById('overlay');
+                        if (!overlay) {
+                            overlay = document.createElement('div');
+                            overlay.id = 'overlay';
+                            overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:1001;
+                display:none;
+            `;
+                            document.body.appendChild(overlay);
+                        }
+
                         panel.style.display = 'block';
+                        panel.style.position = 'fixed';
+                        panel.style.top = '0';
+                        panel.style.right = '0';
+                        panel.style.height = '100%';
+                        panel.style.zIndex = '1050';
+                        panel.style.backgroundColor = '#fff';
                         overlay.style.display = 'block';
                         document.body.style.overflow = 'hidden';
-                    });
+                        return;
+                    }
 
-                    closeBtn.addEventListener('click', () => {
-                        panel.style.display = 'none';
-                        overlay.style.display = 'none';
-                        document.body.style.overflow = '';
-                    });
+                    // Fechar painel Nova Leitura
+                    if (target.closest('#closeRightPanel') || target.closest('#overlay')) {
+                        const panel = document.getElementById('rightPanel');
+                        const overlay = document.getElementById('overlay');
 
-                    overlay.addEventListener('click', () => {
-                        panel.style.display = 'none';
-                        overlay.style.display = 'none';
+                        if (panel) panel.style.display = 'none';
+                        if (overlay) overlay.style.display = 'none';
                         document.body.style.overflow = '';
-                    });
+                        return;
+                    }
                 });
             </script>
+
+
         <?php endif; ?>
         <!-- Detail Panel -->
         <?php if ($detailReading): ?>

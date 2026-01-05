@@ -215,6 +215,51 @@ $stateClasses = [
         <?php ActiveForm::end(); ?>
     <?php endif; ?>
 
+    <script>
+        document.addEventListener('click', function(event) {
+            const target = event.target;
+
+            // Abrir Right Panel
+            if (target.closest('[data-toggle="right-panel"]')) {
+                const panel = document.getElementById('rightPanel');
+                if (!panel) return;
+
+                let overlay = document.getElementById('overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'overlay';
+                    overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:1049;
+                display:none;
+            `;
+                    document.body.appendChild(overlay);
+                }
+
+                panel.style.display = 'block';
+                overlay.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                return;
+            }
+
+            // Fechar Right Panel ao clicar no botão ou no overlay
+            if (target.closest('#closeRightPanel') || target.closest('#overlay')) {
+                const panel = document.getElementById('rightPanel');
+                const overlay = document.getElementById('overlay');
+
+                if (panel) panel.style.display = 'none';
+                if (overlay) overlay.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                return;
+            }
+        });
+    </script>
+
     <!-- Overlay -->
     <div id="overlay"></div>
 </div>

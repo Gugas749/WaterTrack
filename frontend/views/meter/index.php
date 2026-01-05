@@ -336,7 +336,7 @@ $measureUnityOptions = [
 
                     <!-- BOTÕES -->
                     <div class="d-flex justify-content-end gap-2 mt-4">
-                        <button type="button" class="btn btn-light px-4" onclick="closePanels()">Fechar</button>
+                        <button type="button" class="closeDetailPanel btn btn-light px-4">Fechar</button>
 
                         <?php if (!empty($isTechnician) && $isTechnician): ?>
                             <?= Html::submitButton('Editar', ['class' => 'btn btn-danger px-4', 'style' => 'background-color:#4f46e5; border:none;']) ?>
@@ -351,22 +351,119 @@ $measureUnityOptions = [
 
                 </div>
             </div>
-            <script>
-                function closePanels() {
-                    window.location.href = '<?= Url::to(['meter/index']) ?>';
+        <?php endif; ?>
+
+        <script>
+            document.addEventListener('click', function(event) {
+                const target = event.target;
+
+                // --- Abrir Right Panel (Adicionar Contador) ---
+                if (target.closest('[data-toggle="right-panel"]')) {
+                    const panel = document.getElementById('rightPanel');
+                    if (!panel) return;
+
+                    let overlay = document.getElementById('overlay');
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.id = 'overlay';
+                        overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:999;
+                display:none;
+            `;
+                        document.body.appendChild(overlay);
+                    }
+
+                    panel.style.display = 'block';
+                    panel.style.position = 'fixed';
+                    panel.style.top = '0';
+                    panel.style.right = '0';
+                    panel.style.height = '100%';
+                    panel.style.zIndex = '1050';
+                    panel.style.backgroundColor = '#fff';
+
+                    overlay.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                    return;
                 }
 
-                document.addEventListener('DOMContentLoaded', () => {
-                    // mostra overlay e painel só se existirem
-                    var overlay = document.getElementById('overlay');
-                    var detail = document.getElementById('detailPanel');
-                    if (overlay) overlay.style.display = 'block';
-                    if (detail) detail.style.display = 'block';
-                    document.body.style.overflow = 'hidden';
-                });
-            </script>
+                // --- Abrir Detail Panel (quando $detailMeter definido) ---
+                if (target.closest('.openDetailPanel')) {
+                    const panel = document.getElementById('detailPanel');
+                    if (!panel) return;
 
-        <?php endif; ?>
+                    let overlay = document.getElementById('overlay');
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.id = 'overlay';
+                        overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:999;
+                display:none;
+            `;
+                        document.body.appendChild(overlay);
+                    }
+
+                    panel.style.display = 'block';
+                    panel.style.position = 'fixed';
+                    panel.style.top = '50%';
+                    panel.style.left = '50%';
+                    panel.style.transform = 'translate(-50%, -50%)';
+                    panel.style.zIndex = '1050';
+                    overlay.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                    return;
+                }
+
+                // --- Fechar qualquer painel via overlay ou botão fechar ---
+                if (target.closest('#closeRightPanel') || target.closest('.closeDetailPanel') || target.closest('#overlay')) {
+                    const rightPanel = document.getElementById('rightPanel');
+                    const detailPanel = document.getElementById('detailPanel');
+                    const overlay = document.getElementById('overlay');
+
+                    if (rightPanel) rightPanel.style.display = 'none';
+                    if (detailPanel) detailPanel.style.display = 'none';
+                    if (overlay) overlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                    return;
+                }
+            });
+
+            // --- Se já existir $detailMeter, mostrar overlay e detailPanel ---
+            document.addEventListener('DOMContentLoaded', () => {
+                const detail = document.getElementById('detailPanel');
+                if (detail && detail.classList.contains('show')) {
+                    let overlay = document.getElementById('overlay');
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.id = 'overlay';
+                        overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:999;
+            `;
+                        document.body.appendChild(overlay);
+                    }
+                    overlay.style.display = 'block';
+                    detail.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                }
+            });
+        </script>
 
         <div id="overlay"></div>
 

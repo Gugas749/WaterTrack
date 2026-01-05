@@ -208,22 +208,91 @@ $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\Bo
             </div>
         <?php endif; ?>
         <!--ATIVAR O DETAIL PANEL -->
-        <?php if ($detailEnterprise): ?>
-            <script>
-                document.addEventListener('DOMContentLoaded', () => {
+        <script>
+            document.addEventListener('click', function(event) {
+                const target = event.target;
+
+                // --- Abrir Right Panel (Adicionar Empresa) ---
+                if (target.closest('[data-toggle="right-panel"]')) {
+                    const panel = document.getElementById('rightPanel');
+                    if (!panel) return;
+
+                    let overlay = document.getElementById('overlay');
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.id = 'overlay';
+                        overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:1049;
+                display:none;
+            `;
+                        document.body.appendChild(overlay);
+                    }
+
+                    panel.style.display = 'block';
+                    panel.style.position = 'fixed';
+                    panel.style.top = '0';
+                    panel.style.right = '0';
+                    panel.style.height = '100%';
+                    panel.style.width = '400px';
+                    panel.style.zIndex = '1050';
+                    panel.style.backgroundColor = '#fff';
+
+                    overlay.style.display = 'block';
+                    document.body.style.overflow = 'hidden';
+                    return;
+                }
+
+                // --- Fechar Right Panel ou Detail Panel ---
+                if (target.closest('#closeRightPanel') || target.closest('.closeDetailPanel') || target.closest('#overlay')) {
+                    const rightPanel = document.getElementById('rightPanel');
                     const detailPanel = document.getElementById('detailPanel');
                     const overlay = document.getElementById('overlay');
 
+                    if (rightPanel) rightPanel.style.display = 'none';
+                    if (detailPanel) detailPanel.style.display = 'none';
+                    if (overlay) overlay.style.display = 'none';
+                    document.body.style.overflow = '';
+                    return;
+                }
+            });
+
+            // --- Mostrar Detail Panel automaticamente se existir $detailEnterprise ---
+            document.addEventListener('DOMContentLoaded', () => {
+                const detailPanel = document.getElementById('detailPanel');
+                if (detailPanel) {
+                    let overlay = document.getElementById('overlay');
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.id = 'overlay';
+                        overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:1049;
+            `;
+                        document.body.appendChild(overlay);
+                    }
+
                     overlay.style.display = 'block';
                     detailPanel.style.display = 'block';
+                    detailPanel.style.position = 'fixed';
+                    detailPanel.style.top = '50%';
+                    detailPanel.style.left = '50%';
+                    detailPanel.style.transform = 'translate(-50%, -50%)';
+                    detailPanel.style.zIndex = '1050';
                     document.body.style.overflow = 'hidden';
-
-                    requestAnimationFrame(() => {
-                        detailPanel.classList.add('show');
-                    });
-                });
-            </script>
-        <?php endif; ?>
+                }
+            });
+        </script>
         <!-- OVERLAY -->
         <div id="overlay"></div>
     </div>
