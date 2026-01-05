@@ -1,237 +1,216 @@
 <?php
-
+// Helpers do Yii
+use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
-use yii\bootstrap5\ActiveForm;
 use yii\helpers\Url;
-use common\models\Meter;
-use common\models\Meterproblem;
+use yii\widgets\ActiveForm;
 
-/* METERS */
-$meters = Meter::find()
-    ->joinWith('meterreadings') // relação no Meter.php
-    ->where(['meterreading.problemState' => 1])
-    ->distinct()
-    ->all();
-$meterOptions = [];
-foreach ($meters as $m) {
-    $meterOptions[$m->id] = 'Contador #' . $m->id . ' - ' . $m->address;
-}
-
-$this->title = 'Relatórios de Problemas';
+// Título da página
+$this->title = 'Relatórios';
 $this->params['breadcrumbs'][] = $this->title;
 
 $this->registerCssFile('@web/css/views-index.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
 $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\BootstrapPluginAsset::class]]);
 
-$addReport = new Meterproblem();
+// Estados dos problemas
+$problemStates = [
+        0 => 'RESOLVIDO',
+        1 => 'EM ANÁLISE',
+        2 => 'POR RESOLVER',
+];
 
-$problemTypeOptions = [
-    'Fuga de água',
-    'Contador avariado',
-    'Leitura incorreta',
-    'Pressão anormal',
-    'Danos físicos no contador',
-    'Outro',
+// Classes CSS para cada estado
+$stateClasses = [
+        0 => 'text-success',
+        1 => 'text-warning',
+        2 => 'text-danger',
 ];
 ?>
 
-<div class="content">
-    <div class="container-fluid py-4" style="background-color:#f9fafb; min-height:100vh;">
-
-        <!-- HEADER -->
-        <div class="d-flex justify-content-between align-items-center mb-4 px-3">
-            <h4 class="fw-bold text-dark">Relatórios de Problemas</h4>
-
-            <?php if ($isTechnician): ?>
-                <button class="btn btn-danger" style="background-color:#4f46e5; border:none;"
-                        onclick="document.getElementById('addPanel').style.display='block';
-                                 document.getElementById('overlay').style.display='block'">
-                    <i class="fas fa-plus me-1"></i> Novo Relatório
-                </button>
-            <?php endif; ?>
-        </div>
-
-        <!-- TABLE -->
-        <div class="card shadow-sm border-0 mx-3" style="border-radius:16px;">
-            <div class="card-body">
-
-                <h6 class="fw-bold text-secondary mb-3">
-                    Total de Relatórios: <?= count($reports) ?>
-                </h6>
-
-                <div class="table-responsive">
-                    <table class="table align-middle">
-                        <thead class="text-muted small">
-                        <tr>
-                            <th>ID</th>
-                            <th>Contador</th>
-                            <th>Tipo de Problema</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-
-                        <?php if (!empty($reports)): ?>
-                            <?php foreach ($reports as $report): ?>
-                                <tr>
-                                    <td><?= $report->id ?></td>
-                                    <td>Contador #<?= $report->meterID ?></td>
-                                    <td><?= Html::encode($report->problemType) ?></td>
-                                    <td>
-                                        <?= Html::button('Ver Detalhes', [
-                                            'class' => 'btn btn-outline-danger btn-sm fw-semibold shadow-sm',
-                                            'onclick' => "window.location.href='" .
-                                                Url::to(['report/index', 'id' => $report->id]) . "'",
-                                        ]) ?>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="4" class="text-center text-muted">
-                                    Nenhum relatório encontrado.
-                                </td>
-                            </tr>
-                        <?php endif; ?>
-
-                        </tbody>
-                    </table>
-                </div>
-
-            </div>
-        </div>
-
-        <!-- ADD PANEL -->
-        <?php if ($isTechnician): ?>
-            <div id="addPanel" class="detail-panel show bg-white shadow" style="display:none;">
-                <div class="modal-content p-4 rounded-4">
-
-                    <div class="d-flex justify-content-between mb-3">
-                        <h5 class="fw-bold">Novo Relatório</h5>
-                        <button class="btn btn-sm btn-light" onclick="closePanels()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-                    <?php $form = ActiveForm::begin([
-                        'action' => ['report/create'],
-                        'method' => 'post'
-                    ]); ?>
-
-                    <?= $form->field($addReport, 'meterID')
-                        ->dropDownList($meterOptions, ['prompt' => 'Selecione o contador']) ?>
-
-                    <?= $form->field($addReport, 'problemType')
-                        ->dropDownList(
-                            array_combine($problemTypeOptions, $problemTypeOptions),
-                            ['prompt' => 'Selecione o tipo de problema', 'id' => 'problem-type-select']
-                        ) ?>
-
-                    <div id="other-problem-wrapper" class="mb-3" style="display:none;">
-                        <label class="form-label">Outro problema</label>
-                        <?= Html::textInput(
-                            'otherProblem',
-                            '',
-                            [
-                                'class' => 'form-control',
-                                'placeholder' => 'Descreva o problema'
-                            ]
-                        ) ?>
-                    </div>
-
-                    <?= $form->field($addReport, 'desc')->textarea(['rows' => 4]) ?>
-
-                    <div class="d-flex justify-content-end">
-                        <?= Html::submitButton('Criar Relatório', ['class'=>'btn btn-danger']) ?>
-                    </div>
-
-                    <?php ActiveForm::end(); ?>
-
-                </div>
-            </div>
-        <?php endif; ?>
-
-        <!-- DETAIL PANEL -->
-        <?php if ($detailReport): ?>
-            <div id="detailPanel" class="detail-panel show bg-white shadow">
-                <div class="modal-content border-0 shadow-lg rounded-4 p-4">
-
-                    <div class="d-flex justify-content-between mb-3">
-                        <h5 class="fw-bold">Detalhes do Relatório</h5>
-                        <button class="btn btn-sm btn-light" onclick="closePanels()">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-
-
-                    <?php
-                    if (!empty($isTechnician) && $isTechnician) {
-                        $form = ActiveForm::begin([
-                            'action' => ['report/update', 'id' => $detailReport->id],
-                            'method' => 'post'
-                        ]);
-                    }
-                    ?>
-
-
-                    <div class="row g-2 mb-2">
-                        <div class="col-md-4">
-                            <label class="form-label">Leitura</label>
-                            <?= !empty($form)
-                                ? $form->field($detailReport, 'problemType')->label(false)
-                                : Html::input('text', null, $detailReport->problemType, ['class'=>'form-control mb-3', 'readonly'=>true])?>
-                        </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label">Consumo</label>
-                            <?= !empty($form)
-                                ? $form->field($detailReport, 'desc')->textarea(['rows' => 4])->label(false)
-                                : Html::textarea(null, $detailReport->desc, ['class'=>'form-control', 'readonly'=>true])?>
-                        </div>
-                    </div>
-
-                    <div class="d-flex justify-content-end gap-2">
-                        <button class="btn btn-light" onclick="closePanels()">Fechar</button>
-                        <?php if (!empty($form)): ?>
-                            <?= Html::submitButton('Salvar', ['class'=>'btn btn-danger']) ?>
-                        <?php endif; ?>
-                    </div>
-
-                    <?php if (!empty($form)) ActiveForm::end(); ?>
-
-                </div>
-            </div>
-            <script>
-                function closePanels() {
-                    window.location.href = '<?= Url::to(['report/index']) ?>';
-                }
-
-                document.addEventListener('DOMContentLoaded', () => {
-                    // mostra overlay e painel só se existirem
-                    var overlay = document.getElementById('overlay');
-                    var detail = document.getElementById('detailPanel');
-                    if (overlay) overlay.style.display = 'block';
-                    if (detail) detail.style.display = 'block';
-                    document.body.style.overflow = 'hidden';
-                });
-            </script>
-
-        <?php endif; ?>
-
-        <div id="overlay"></div>
-
+<div class="container-fluid py-4 position-relative">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold">Relatórios</h4>
+        <button class="btn btn-danger" data-toggle="right-panel" style="background-color:#4f46e5; border:none;">
+            <i class="fas fa-plus me-1"></i> Novo Relatório
+        </button>
     </div>
 
+    <!-- Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <table class="table align-middle">
+                <thead class="text-muted">
+                <tr>
+                    <th>Nº Relatório</th>
+                    <th>Nº Contador</th>
+                    <th>Morada</th>
+                    <th>Criado por</th>
+                    <th>Técnico Atribuído</th>
+                    <th>Estado</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+                <?php if (!empty($reports)): ?>
+                    <?php foreach ($reports as $report): ?>
+                        <tr>
+                            <td>Relatório nº<?= Html::encode($report->id) ?></td>
+                            <td>Contador nº<?= Html::encode($report->meter->id) ?><br></td>
+                            <td><?= Html::encode($report->meter->address) ?></td>
+                            <td><?= Html::encode($report->user->username) ?></td>
+                            <td>
+                                <?= $report->tecnico ? Html::encode($report->tecnico->username) : '<span class="text-muted">Não atribuído</span>' ?>
+                            </td>
+                            <td class="fw-bold <?= $stateClasses[$report->problemState] ?>">
+                                <?= $problemStates[$report->problemState] ?>
+                            </td>
+                            <td>
+                                <?= Html::button('Ver Detalhes', [
+                                        'class' => 'btn btn-outline-primary btn-sm',
+                                        'onclick' => "window.location.href='" . Url::to(['report/index', 'id' => $report->id]) . "'"
+                                ]) ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">Nenhum relatório encontrado.</td>
+                    </tr>
+                <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Right Panel -->
+    <div id="rightPanel" class="position-fixed top-0 end-0 bg-white shadow" style="width:400px; height:100%; z-index:1050; display:none; overflow-y:auto;">
+        <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+            <h5 class="fw-bold">Criar Relatório</h5>
+            <button type="button" class="btn btn-sm btn-light" id="closeRightPanel">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="p-3">
+            <?php $form = ActiveForm::begin([
+                    'action' => ['report/create'],
+                    'method' => 'post',
+            ]); ?>
+
+            <h6 class="fw-bold text-dark m-2">Nº do Contador</h6>
+            <?= $form->field($model, 'meterID')->dropDownList(
+                    ArrayHelper::map($meters, 'id', fn($m) => $m->id . ' - ' . $m->address),
+                    ['prompt' => 'Selecione o contador']
+            )->label(false) ?>
+
+            <h6 class="fw-bold text-dark m-2">Descrição</h6>
+            <?= $form->field($model, 'description')->textarea(['rows' => 3, 'placeholder' => 'Indique o problema'])->label(false) ?>
+
+            <div class="text-center mt-3">
+                <?= Html::submitButton('Criar Relatório', ['class' => 'btn btn-danger', 'style' => 'background-color:#4f46e5; border:none;']) ?>
+            </div>
+
+            <?php ActiveForm::end(); ?>
+        </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <?php if ($detailProblem): ?>
+        <?php
+        $stateBadgeClasses = [
+                0 => 'bg-success',
+                1 => 'bg-warning',
+                2 => 'bg-danger',
+        ];
+
+        $dropdownDisabled = !$detailProblem->tecnicoID || $detailProblem->tecnicoID != Yii::$app->user->id;
+        ?>
+
+        <?php $form = ActiveForm::begin([
+                'action' => ['report/update', 'id' => $detailProblem->id],
+                'method' => 'post',
+        ]); ?>
+
+        <div id="detailPanel" class="position-fixed top-50 start-50 translate-middle bg-white shadow-lg rounded-4 p-4" style="z-index:1050; width:500px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0">Detalhes do Relatório</h5>
+                <button type="button" class="btn btn-sm btn-light closeDetailPanel">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <span class="badge <?= $stateBadgeClasses[$detailProblem->problemState] ?> mb-3">
+                <?= $problemStates[$detailProblem->problemState] ?>
+            </span>
+
+            <h6 class="fw-bold text-dark m-2">Descrição</h6>
+            <?= $form->field($detailProblem, 'description')->textarea([
+                    'disabled' => $dropdownDisabled,
+                    'rows' => 2,
+            ])->label(false) ?>
+
+            <div class="mb-3">
+                <h6 class="fw-bold text-dark m-2">Nº do Contador</h6>
+                <input class="form-control" type="text"
+                       value="<?= $detailProblem->meter->id ?> - <?= $detailProblem->meter->address ?>"
+                       disabled>
+
+                <!-- Hidden para enviar o meterID correto -->
+                <?= $form->field($detailProblem, 'meterID')->hiddenInput()->label(false) ?>
+            </div>
+
+            <?php if ($isTechnician): ?>
+                <h6 class="fw-bold text-dark m-2">Estado do Relatório</h6>
+                <?= $form->field($detailProblem, 'problemState')->dropDownList($problemStates, [
+                        'disabled' => $dropdownDisabled,
+                ])->label(false) ?>
+            <?php endif; ?>
+
+            <div class="d-flex justify-content-end mt-3 gap-2">
+                <button type="button" class="btn btn-light closeDetailPanel">Fechar</button>
+
+                <?php if ($isTechnician): ?>
+                    <?php if (!$detailProblem->tecnicoID): ?>
+                        <?= Html::submitButton('Assumir Análise', [
+                                'class' => 'btn btn-danger',
+                                'style' => 'background-color:#4f46e5; border:none;',
+                                'name' => 'action',
+                                'value' => 'assign'
+                        ]) ?>
+                    <?php elseif ($detailProblem->tecnicoID == Yii::$app->user->id): ?>
+                        <?= Html::submitButton('Atualizar Relatório', [
+                                'class' => 'btn btn-success',
+                                'style' => 'background-color:#4f46e5; border:none;',
+                                'name' => 'action',
+                                'value' => 'update'
+                        ]) ?>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <?php ActiveForm::end(); ?>
+    <?php endif; ?>
+
+    <div id="overlay"></div>
+
+
+    <!-- Scripts -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const select = document.getElementById('problem-type-select');
-            const wrapper = document.getElementById('other-problem-wrapper');
+        const overlay = document.getElementById('overlay');
+        const rightPanel = document.getElementById('rightPanel');
+        const openBtn = document.querySelector('[data-toggle="right-panel"]');
+        const closeBtn = document.getElementById('closeRightPanel');
 
-            if (!select || !wrapper) return;
+        if (openBtn) openBtn.onclick = () => { rightPanel.style.display='block'; overlay.style.display='block'; document.body.style.overflow='hidden'; };
+        if (closeBtn) closeBtn.onclick = () => { rightPanel.style.display='none'; overlay.style.display='none'; document.body.style.overflow='auto'; };
+        overlay.onclick = () => { if (rightPanel.style.display==='block') { rightPanel.style.display='none'; overlay.style.display='none'; document.body.style.overflow='auto'; } };
 
-            select.addEventListener('change', () => {
-                wrapper.style.display = (select.value === 'Outro') ? 'block' : 'none';
-            });
-        });
+        const closeDetailButtons = document.querySelectorAll('.closeDetailPanel');
+        closeDetailButtons.forEach(btn => btn.onclick = () => window.location.href='<?= Url::to(['report/index']) ?>');
+
+        if (document.getElementById('detailPanel')) { overlay.style.display='block'; document.body.style.overflow='hidden'; }
     </script>
+
 </div>
