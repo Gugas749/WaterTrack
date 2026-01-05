@@ -23,39 +23,41 @@ $addReading = new Meterreading();
                 'enablePushState' => false, // important
         ]); ?>
         <!-- Header -->
-        <div class="d-flex justify-content-between align-items-center mb-4 px-3">
+        <div class="d-flex align-items-center mb-4 px-3">
+
             <h4 class="fw-bold text-dark">Leituras de Contadores</h4>
 
-            <!-- Dropdown selection -->
-            <?php $form = ActiveForm::begin([
-                    'method' => 'get',
-                    'action' => ['reading/index'],
-                    'options' => [
-                            'data' => ['pjax' => true],
-                            'class' => 'd-flex align-items-center gap-3'
-                    ],
-            ]); ?>
+            <div class="d-flex align-items-center gap-3 ms-auto">
+                <?php $form = ActiveForm::begin([
+                        'method' => 'get',
+                        'action' => ['reading/index'],
+                        'options' => [
+                                'data' => ['pjax' => true],
+                                'class' => 'd-flex align-items-center gap-3'
+                        ],
+                ]); ?>
 
-            <?= Html::dropDownList(
-                    'meter_id',
-                    $selectedMeterId ?? null,
-                    $meterItems ?? [],
-                    [
-                            'class' => 'form-select',
-                            'prompt' => 'Selecione um Contador',
-                            'onchange' => '$("#readingsTable form").submit();',
-                    ]
-            ) ?>
+                <?= Html::dropDownList(
+                        'meter_id',
+                        $selectedMeterId ?? null,
+                        $meterItems ?? [],
+                        [
+                                'class' => 'form-select',
+                                'prompt' => 'Selecione um Contador',
+                                'onchange' => '$("#readingsTable form").submit();',
+                        ]
+                ) ?>
 
-            <?php ActiveForm::end(); ?>
+                <?php ActiveForm::end(); ?>
 
-            <?php if ($isTechnician): ?>
-                <button class="btn btn-danger"
-                        data-toggle="right-panel"
-                        style="background-color:#4f46e5; border:none;">
-                    <i class="fas fa-plus me-1"></i> Nova Leitura
-                </button>
-            <?php endif; ?>
+                <?php if ($isTechnician): ?>
+                    <button class="btn btn-danger"
+                            data-toggle="right-panel"
+                            style="background-color:#4f46e5; border:none;">
+                        <i class="fas fa-plus me-1"></i> Nova Leitura
+                    </button>
+                <?php endif; ?>
+            </div>
         </div>
         <!-- Table -->
         <div class="card shadow-sm border-0 mx-3" style="border-radius:16px;">

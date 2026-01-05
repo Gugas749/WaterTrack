@@ -1,12 +1,10 @@
 <?php
-// Helpers do Yii
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
 use yii\widgets\Pjax;
 
-// Título da página
 $this->title = 'Relatórios';
 $this->params['breadcrumbs'][] = $this->title;
 
@@ -35,28 +33,34 @@ $stateClasses = [
             'enablePushState' => false, // important
     ]); ?>
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center mb-4">
         <h4 class="fw-bold">Relatórios</h4>
-        <!-- Search -->
-        <div class="input-group mx-5" style="width:220px;">
+
+        <div class="d-flex align-items-center gap-3 ms-auto">
+            <!-- SEARCH -->
+            <div class="input-group" style="width:220px;">
             <?php $form = ActiveForm::begin([
                     'method' => 'get',
                     'action' => ['report/index'],
                     'options' => ['data' => ['pjax' => true], 'class' => 'd-flex align-items-center w-100'],
             ]); ?>
-            <input type="text" name="q"
-                   class="form-control form-control-sm ps-3 pe-5"
-                   placeholder="Search"
-                   value="<?= Html::encode($search) ?>"
-                   style="border:1px solid #e5e7eb;">
-            <button type="submit" class="input-group-text bg-transparent border-0 text-muted"
-                    style="position:absolute; right:10px; top:50%; transform:translateY(-50%);">
-                <i class="fas fa-search"></i>
-            </button>
+                <div>
+                    <input type="text" name="q"
+                           class="form-control form-control-sm ps-3 pe-5 MX-2"
+                           placeholder="Search"
+                           value="<?= Html::encode($search) ?>"
+                           style="border:1px solid #e5e7eb;">
+                    <button type="submit" class="input-group-text bg-transparent border-0 text-muted"
+                            style="position:absolute; right:10px; top:50%; transform:translateY(-50%);">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+
             <?php ActiveForm::end(); ?>
+            </div>
         </div>
         <!-- Open Panel Button -->
-        <button class="btn btn-danger" data-toggle="right-panel" style="background-color:#4f46e5; border:none;">
+        <button class="btn btn-danger ms-4" data-toggle="right-panel" style="background-color:#4f46e5; border:none;">
             <i class="fas fa-plus me-1"></i> Novo Relatório
         </button>
     </div>
