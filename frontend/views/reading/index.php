@@ -1,54 +1,26 @@
 <?php
 
 use yii\helpers\Html;
-use yii\bootstrap5\ActiveForm;
 use yii\helpers\Url;
+use yii\widgets\ActiveForm;
 use common\models\Meterreading;
-use common\models\Meter;
-use common\models\User;
-
-// USERS
-$users = User::find()->all();
-$userOptions = [];
-foreach ($users as $u) {
-    $userOptions[$u->id] = $u->username;
-}
-
-// METERS
-$meters = Meter::find()->all();
-$meterOptions = [];
-foreach ($meters as $m) {
-    $meterOptions[$m->id] = 'Contador #' . $m->id . ' - ' . $m->address;
-}
 
 $this->title = 'Leituras de Contadores';
 $this->params['breadcrumbs'][] = $this->title;
 
-$this->registerCssFile('@web/css/views-index.css', ['depends' => [\yii\bootstrap5\BootstrapAsset::class]]);
-$this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\BootstrapPluginAsset::class]]);
+$this->registerCssFile('@web/css/views-index.css');
+$this->registerJsFile('@web/js/main-index.js');
 
 $addReading = new Meterreading();
-
-$readingTypeOptions = [
-    0 => 'Manual',
-    1 => 'Automática',
-];
-
-$problemStateOptions = [
-    0 => 'Sem Problema',
-    1 => 'Com Problema',
-];
-
 ?>
 
 <div class="content">
     <div class="container-fluid py-4" style="background-color:#f9fafb; min-height:100vh;">
-
-        <!-- HEADER -->
+        <!-- Header -->
         <div class="d-flex justify-content-between align-items-center mb-4 px-3">
             <h4 class="fw-bold text-dark">Leituras de Contadores</h4>
 
-            <?php if (!empty($isTechnician) && $isTechnician): ?>
+            <?php if ($isTechnician): ?>
                 <button class="btn btn-danger"
                         data-toggle="right-panel"
                         style="background-color:#4f46e5; border:none;">
@@ -57,7 +29,7 @@ $problemStateOptions = [
             <?php endif; ?>
         </div>
 
-        <!-- TABLE -->
+        <!-- Table -->
         <div class="card shadow-sm border-0 mx-3" style="border-radius:16px;">
             <div class="card-body">
 
@@ -69,7 +41,6 @@ $problemStateOptions = [
                     <table class="table align-middle">
                         <thead class="text-muted small">
                         <tr>
-                            <th>ID</th>
                             <th>Contador</th>
                             <th>Leitura</th>
                             <th>Consumo Acumulado</th>
@@ -79,21 +50,17 @@ $problemStateOptions = [
                         </thead>
                         <tbody>
 
-                        <?php if (!empty($readings)): ?>
+                        <?php if ($readings): ?>
                             <?php foreach ($readings as $reading): ?>
                                 <tr>
-                                    <td><?= $reading->id ?></td>
                                     <td><?= 'Contador #' . $reading->meterID ?></td>
                                     <td><?= Html::encode($reading->reading) ?></td>
                                     <td><?= Html::encode($reading->accumulatedConsumption) ?></td>
                                     <td><?= Html::encode($reading->date) ?></td>
                                     <td>
                                         <?= Html::button('Ver Detalhes', [
-                                            'class' => 'btn btn-outline-primary btn-sm fw-semibold shadow-sm',
+                                                'class' => 'btn btn-outline-primary btn-sm fw-semibold shadow-sm',
                                                 'onclick' => "window.location.href='" . Url::to(['reading/index', 'id' => $reading->id]) . "'",
-                                                'style' => 'transition:0.2s;',
-                                                'onmouseover' => "this.style.transform='scale(1.05)'",
-                                                'onmouseout'  => "this.style.transform='scale(1)'",
                                         ]) ?>
                                     </td>
                                 </tr>
@@ -113,7 +80,8 @@ $problemStateOptions = [
             </div>
         </div>
 
-        <?php if (!empty($isTechnician) && $isTechnician): ?>
+        <!-- Right Panel (ADD) -->
+        <?php if ($isTechnician): ?>
             <div id="rightPanel" class="right-panel bg-white shadow" style="display:none;">
                 <div class="right-panel-header d-flex justify-content-between align-items-center p-3 border-bottom">
                     <h5 class="fw-bold text-dark">Nova Leitura</h5>
@@ -123,32 +91,32 @@ $problemStateOptions = [
                 </div>
 
                 <div class="p-3">
-                    <?php $form = \yii\widgets\ActiveForm::begin([
+                    <?php $form = ActiveForm::begin([
                             'id' => 'add-reading-form',
                             'action' => ['reading/create'],
                             'method' => 'post'
                     ]); ?>
 
-                    <!-- CONTADOR -->
-                    <div class="mb-3">
-                        <?= $form->field($addReading, 'meterID')
-                                ->dropDownList($meterOptions, ['prompt' => 'Selecione o contador']) ?>
+                    <h6 class="fw-bold text-dark m-2">Contador</h6>
+                    <?= $form->field($addReading, 'meterID')->dropDownList($meterOptions, ['prompt' => 'Selecione o contador'])->label(false) ?>
+
+                    <h6 class="fw-bold text-dark m-2">Leitura</h6>
+                    <?= $form->field($addReading, 'reading')->textInput(['placeholder' => 'Indique a leitura'])->label(false) ?>
+
+                    <h6 class="fw-bold text-dark m-2">Consumo Acumulado</h6>
+                    <?= $form->field($addReading, 'accumulatedConsumption')->textInput(['placeholder' => 'Indique o consumo acumulado'])->label(false) ?>
+
+                    <h6 class="fw-bold text-dark m-2">Pressão da Água</h6>
+                    <?= $form->field($addReading, 'waterPressure')->textInput(['placeholder' => 'Indique a pressão da água'])->label(false) ?>
+
+                    <h6 class="fw-bold text-dark m-2">Data da Leitura</h6>
+                    <?= $form->field($addReading, 'date')->input('date')->label(false) ?>
+
+                    <div class="text-center mt-3">
+                        <?= Html::submitButton('Criar Leitura', ['class' => 'btn btn-danger ', 'style' => 'background-color:#4f46e5; border:none;']) ?>
                     </div>
 
-                    <?= $form->field($addReading, 'userID')->hiddenInput()->label(false) ?>
-                    <?= $form->field($addReading, 'reading') ?>
-                    <?= $form->field($addReading, 'accumulatedConsumption') ?>
-                    <?= $form->field($addReading, 'waterPressure') ?>
-                    <?= $form->field($addReading, 'readingType')->dropDownList($readingTypeOptions) ?>
-                    <?= $form->field($addReading, 'problemState')->dropDownList($problemStateOptions) ?>
-                    <?= $form->field($addReading, 'desc')->textarea() ?>
-                    <?= $form->field($addReading, 'date')->input('date') ?>
-
-                    <div class="text-end mt-3">
-                        <?= Html::submitButton('Criar Leitura', ['class' => 'btn btn-primary']) ?>
-                    </div>
-
-                    <?php \yii\widgets\ActiveForm::end(); ?>
+                    <?php ActiveForm::end(); ?>
                 </div>
             </div>
 
@@ -185,13 +153,10 @@ $problemStateOptions = [
                     });
                 });
             </script>
-
         <?php endif; ?>
 
-
-        <!-- DETAIL PANEL -->
+        <!-- Detail Panel -->
         <?php if ($detailReading): ?>
-
             <div id="detailPanel" class="detail-panel show bg-white shadow">
                 <div class="modal-content border-0 shadow-lg rounded-4 p-4">
 
@@ -202,156 +167,74 @@ $problemStateOptions = [
                         </button>
                     </div>
 
-                    <?php
-                    if (!empty($isTechnician) && $isTechnician) {
-                        $form = ActiveForm::begin([
-                            'action' => ['reading/update', 'id' => $detailReading->id],
-                            'method' => 'post'
-                        ]);
-                    }
-                    ?>
+                    <?php if ($isTechnician): ?>
+                        <?php $form = ActiveForm::begin([
+                                'action' => ['reading/update', 'id' => $detailReading->id],
+                                'method' => 'post'
+                        ]); ?>
+                    <?php endif; ?>
 
-                    <div class="row g-2 mb-3">
+                    <div class="row g-1">
+                        <div class="col-md-2">
+                            <?= $form->field($detailReading, 'id')->textInput(['readonly' => true])->label('Referência') ?>
+                        </div>
                         <div class="col-md-4">
-                            <label class="form-label">Leitura</label>
-                            <?= !empty($form)
-                                ? $form->field($detailReading, 'reading')->label(false)
-                                : Html::input('text', null, $detailReading->reading, ['class'=>'form-control', 'readonly'=>true]) ?>
+                            <?= $form->field($detailReading, 'technicianName')
+                                    ->textInput([
+                                            'value' => $technician->username ?? '',
+                                            'readonly' => true
+                                    ])
+                                    ->label('Criador da leitura') ?>
+                        </div>
+
+                        <div class="col-md-5">
+                            <?= $form->field($detailReading, 'meterAddress')
+                                    ->textInput([
+                                            'value' => $detailReading->meter->address ?? '',
+                                            'readonly' => true
+                                    ])
+                                    ->label('Morada do Contador') ?>
                         </div>
 
                         <div class="col-md-4">
-                            <label class="form-label">Consumo</label>
-                            <?= !empty($form)
-                                ? $form->field($detailReading, 'accumulatedConsumption')->label(false)
-                                : Html::input('text', null, $detailReading->accumulatedConsumption, ['class'=>'form-control', 'readonly'=>true]) ?>
+                            <?= $form->field($detailReading, 'reading')->textInput()->label('Leitura') ?>
                         </div>
-
                         <div class="col-md-4">
-                            <label class="form-label">Pressão</label>
-                            <?= !empty($form)
-                                ? $form->field($detailReading, 'waterPressure')->label(false)
-                                : Html::input('text', null, $detailReading->waterPressure, ['class'=>'form-control', 'readonly'=>true]) ?>
+                            <?= $form->field($detailReading, 'accumulatedConsumption')->textInput()->label('Consumo acumulado') ?>
                         </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <?= !empty($form)
-                            ? $form->field($detailReading, 'desc')
-                            : Html::textarea(null, $detailReading->desc, ['class'=>'form-control', 'readonly'=>true]) ?>
-                    </div>
-
-                    <div class="row g-2 mb-3">
-
-                        <!-- READING TYPE -->
-                        <div class="col-md-4">
-                            <label class="form-label">Tipo de Leitura</label>
-
-                            <?= !empty($form)
-                                ? $form->field($detailReading, 'readingType')
-                                    ->dropDownList($readingTypeOptions)
-                                    ->label(false)
-                                : Html::input(
-                                    'text',
-                                    null,
-                                    $readingTypeOptions[$detailReading->readingType] ?? '—',
-                                    ['class' => 'form-control', 'readonly' => true]
-                                )
-                            ?>
+                        <div class="col-md-3">
+                            <?= $form->field($detailReading, 'waterPressure')->textInput()->label('Pressão da Água') ?>
                         </div>
-
-                        <!-- PROBLEM STATE -->
-                        <div class="col-md-4">
-                            <label class="form-label">Estado do Problema</label>
-
-                            <?= !empty($form)
-                                ? $form->field($detailReading, 'problemState')
-                                    ->dropDownList($problemStateOptions)
-                                    ->label(false)
-                                : Html::input(
-                                    'text',
-                                    null,
-                                    $problemStateOptions[$detailReading->problemState] ?? '—',
-                                    ['class' => 'form-control', 'readonly' => true]
-                                )
-                            ?>
+                        <div class="col-md-3">
+                            <?= $form->field($detailReading, 'date')->textInput(['readonly' => true])->label('Data') ?>
                         </div>
-
-                        <!-- DATE -->
-                        <div class="col-md-4">
-                            <label class="form-label">Data</label>
-
-                            <?= !empty($form)
-                                ? $form->field($detailReading, 'date')
-                                    ->input('date')
-                                    ->label(false)
-                                : Html::input(
-                                    'text',
-                                    null,
-                                    $detailReading->date,
-                                    ['class' => 'form-control', 'readonly' => true]
-                                )
-                            ?>
-                        </div>
-
                     </div>
 
                     <div class="d-flex justify-content-end gap-2">
                         <button class="btn btn-light" onclick="closePanels()">Fechar</button>
-                        <?php if (!empty($form)): ?>
-                            <?= Html::submitButton('Salvar', ['class'=>'btn btn-primary']) ?>
+                        <?php if ($isTechnician): ?>
+                            <?= Html::submitButton('Editar', ['class' => 'btn btn-danger ', 'style' => 'background-color:#4f46e5; border:none;']) ?>
                         <?php endif; ?>
                     </div>
 
-                    <?php if (!empty($form)) ActiveForm::end(); ?>
+                    <?php if ($isTechnician) ActiveForm::end(); ?>
 
                 </div>
             </div>
+
             <script>
                 function closePanels() {
                     window.location.href = '<?= Url::to(['reading/index']) ?>';
                 }
 
                 document.addEventListener('DOMContentLoaded', () => {
-                    // mostra overlay e painel só se existirem
-                    var overlay = document.getElementById('overlay');
-                    var detail = document.getElementById('detailPanel');
+                    const overlay = document.getElementById('overlay');
                     if (overlay) overlay.style.display = 'block';
-                    if (detail) detail.style.display = 'block';
                     document.body.style.overflow = 'hidden';
                 });
             </script>
-
         <?php endif; ?>
 
         <div id="overlay"></div>
-
     </div>
-
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-
-            const meterSelect = document.getElementById('meterreading-meterid');
-            const userInput   = document.getElementById('meterreading-userid');
-
-            if (!meterSelect || !userInput) return;
-
-            meterSelect.addEventListener('change', function () {
-                const meterID = this.value;
-
-                if (!meterID) {
-                    userInput.value = '';
-                    return;
-                }
-
-                fetch('<?= Url::to(['reading/get-user-by-meter']) ?>?id=' + meterID)
-                    .then(response => response.json())
-                    .then(data => {
-                        userInput.value = data.userID ?? '';
-                    });
-            });
-        });
-    </script>
 </div>
-
-

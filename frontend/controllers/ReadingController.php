@@ -1,11 +1,16 @@
 <?php
+
 namespace frontend\controllers;
 
 use Yii;
 use yii\web\Controller;
+use yii\filters\AccessControl;
+use yii\web\ForbiddenHttpException;
+use yii\helpers\ArrayHelper;
 use common\models\Meterreading;
 use common\models\Meter;
-
+use common\models\User;
+use common\models\Technicianinfo;
 
 class ReadingController extends Controller
 {
@@ -13,11 +18,11 @@ class ReadingController extends Controller
     {
         return [
             'access' => [
-                'class' => \yii\filters\AccessControl::class,
+                'class' => AccessControl::class,
                 'rules' => [
                     [
                         'allow' => true,
-                        'roles' => ['@'], // só utilizadores logados
+                        'roles' => ['@'],
                     ],
                 ],
             ],
@@ -27,130 +32,96 @@ class ReadingController extends Controller
     public function actionIndex()
     {
         $user = Yii::$app->user->identity;
-        $isTechnician = $user ? $user->isTechnician() : false;
+        $isTechnician = $user->isTechnician();
 
-        $meterIdParam   = Yii::$app->request->get('meterID');
-        $readingIdParam = Yii::$app->request->get('id');
+        $readingId = Yii::$app->request->get('id');
 
         if ($isTechnician) {
-            $enterpriseIds = \common\models\Technicianinfo::find()
+            $enterpriseIds = Technicianinfo::find()
                 ->select('enterpriseID')
                 ->where(['userID' => $user->id])
                 ->column();
 
-            $meterIds = \common\models\Meter::find()
-                ->where(['enterpriseID' => $enterpriseIds])
+            $meterIds = Meter::find()
                 ->select('id')
+                ->where(['enterpriseID' => $enterpriseIds])
                 ->column();
 
-            $query = Meterreading::find()
-                ->where(['meterID' => $meterIds]);
+            $readings = Meterreading::find()
+                ->where(['meterID' => $meterIds])
+                ->all();
         } else {
-            $query = Meterreading::find()
+            $readings = Meterreading::find()
                 ->joinWith('meter')
-                ->where(['meter.userID' => $user->id]);
+                ->where(['meter.userID' => $user->id])
+                ->all();
         }
 
-        if (!empty($meterIdParam)) {
-            $query->andWhere(['meterID' => $meterIdParam]);
-        }
+        $detailReading = $readingId ? Meterreading::findOne($readingId) : null;
 
-        $readings = $query->all();
-
-        $detailReading = null;
-        if ($readingIdParam) {
-            $detailReading = Meterreading::findOne($readingIdParam);
-            if ($detailReading) {
-                if ($isTechnician) {
-                    if (!in_array($detailReading->meterID, $meterIds)) {
-                        $detailReading = null;
-                    }
-                } else {
-                    if ($detailReading->meter->userID !== $user->id) {
-                        $detailReading = null;
-                    }
-                }
+        if ($detailReading) {
+            if (
+                (!$isTechnician && $detailReading->meter->userID !== $user->id) ||
+                ($isTechnician && !in_array($detailReading->meterID, $meterIds ?? []))
+            ) {
+                $detailReading = null;
             }
         }
 
+        $meters = $isTechnician
+            ? Meter::find()->where(['id' => $meterIds])->all()
+            : Meter::find()->where(['userID' => $user->id])->all();
+
+        $meterOptions = ArrayHelper::map(
+            $meters,
+            'id',
+            fn($m) => 'Contador #' . $m->id . ' - ' . $m->address
+        );
+
+        $technician = $detailReading
+            ? User::findOne($detailReading->tecnicoID)
+            : null;
+
         return $this->render('index', [
-            'readings'      => $readings,
+            'readings' => $readings,
             'detailReading' => $detailReading,
-            'isTechnician'  => $isTechnician,
+            'isTechnician' => $isTechnician,
+            'meterOptions' => $meterOptions,
+            'technician' => $technician,
         ]);
     }
-
 
     public function actionCreate()
     {
         $user = Yii::$app->user->identity;
 
         if (!$user->isTechnician()) {
-            throw new ForbiddenHttpException('Sem permissão para criar leituras.');
+            throw new ForbiddenHttpException();
         }
 
         $model = new Meterreading();
         $model->date = date('Y-m-d');
+        $model->tecnicoID = $user->id;
 
-        if ($model->load(Yii::$app->request->post())) {
-
-            // 🔹 Buscar o contador selecionado
-            $meter = Meter::findOne($model->meterID);
-
-            if (!$meter) {
-                Yii::$app->session->setFlash('error', 'Contador inválido.');
-                return $this->redirect(['index']);
-            }
-
-            // 🔹 Associar o userID DO CONTADOR
-            $model->userID = $meter->userID;
-
-            if ($model->save()) {
-                Yii::$app->session->setFlash('success', 'Leitura criada com sucesso!');
-                return $this->redirect(['index', 'id' => $model->id]);
-            }
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            return $this->redirect(['index', 'id' => $model->id]);
         }
-
-        Yii::$app->session->setFlash(
-            'error',
-            'Falha ao criar leitura: ' . json_encode($model->errors)
-        );
 
         return $this->redirect(['index']);
     }
 
     public function actionUpdate($id)
     {
-        // apenas técnicos podem actualizar
         if (!Yii::$app->user->identity->isTechnician()) {
-            throw new ForbiddenHttpException('Sem permissão para actualizar leituras.');
+            throw new ForbiddenHttpException();
         }
 
         $model = Meterreading::findOne($id);
-        if (!$model) {
-            Yii::$app->session->setFlash('error', 'Leitura não encontrada.');
+
+        if ($model && $model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['index']);
         }
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Yii::$app->session->setFlash('success', 'Leitura atualizada com sucesso!');
-            return $this->redirect(['index']);
-        }
-
-        Yii::$app->session->setFlash('error', 'Falha ao atualizar leitura.');
         return $this->redirect(['index', 'id' => $id]);
-    }
-
-    public function actionGetUserByMeter($id)
-    {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        $meter = Meter::findOne($id);
-
-        if ($meter) {
-            return ['userID' => $meter->userID];
-        }
-
-        return ['userID' => null];
     }
 }

@@ -8,8 +8,6 @@ $this->registerCssFile('@web/css/views-index.css', ['depends' => [\yii\bootstrap
 $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\BootstrapPluginAsset::class]]);
 $this->registerJsFile('https://cdn.jsdelivr.net/npm/chart.js', ['position' => \yii\web\View::POS_END]);
 $this->registerJsFile('@web/js/dashboard.js', ['depends' => [\yii\web\JqueryAsset::class]]);
-$this->registerJs('window.dashboardData = ['.$ativos.','.$comProblema.','.$inativos.'];', \yii\web\View::POS_HEAD);
-
 
 ?>
 
@@ -30,7 +28,7 @@ $this->registerJs('window.dashboardData = ['.$ativos.','.$comProblema.','.$inati
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body">
                     <h6 class="text-muted">Ativos</h6>
-                    <h3 class="fw-bold text-success"><?= $ativos ?></h3>
+<!--                    <h3 class="fw-bold text-success">--><?php //= $ativos ?><!--</h3>-->
                 </div>
             </div>
         </div>
@@ -39,7 +37,7 @@ $this->registerJs('window.dashboardData = ['.$ativos.','.$comProblema.','.$inati
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body">
                     <h6 class="text-muted">Com Problema</h6>
-                    <h3 class="fw-bold text-warning"><?= $comProblema ?></h3>
+<!--                    <h3 class="fw-bold text-warning">--><?php //= $comProblema ?><!--</h3>-->
                 </div>
             </div>
         </div>
@@ -48,7 +46,7 @@ $this->registerJs('window.dashboardData = ['.$ativos.','.$comProblema.','.$inati
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body">
                     <h6 class="text-muted">Inativos</h6>
-                    <h3 class="fw-bold text-danger"><?= $inativos ?></h3>
+<!--                    <h3 class="fw-bold text-danger">--><?php //= $inativos ?><!--</h3>-->
                 </div>
             </div>
         </div>
@@ -81,7 +79,7 @@ $this->registerJs('window.dashboardData = ['.$ativos.','.$comProblema.','.$inati
                     <div>
                         <h6 class="text-muted mb-1">Leituras sem problema</h6>
                         <h3 class="fw-bold text-success mb-0">
-                            <?= $readingsSemProblema ?>
+<!--                            --><?php //= $readingsSemProblema ?>
                         </h3>
                     </div>
                     <i class="fas fa-check-circle text-success fs-1 opacity-50"></i>
@@ -95,7 +93,7 @@ $this->registerJs('window.dashboardData = ['.$ativos.','.$comProblema.','.$inati
                     <div>
                         <h6 class="text-muted mb-1">Leituras com problema</h6>
                         <h3 class="fw-bold text-danger mb-0">
-                            <?= $readingsComProblema ?>
+<!--                            --><?php //= $readingsComProblema ?>
                         </h3>
                     </div>
                     <i class="fas fa-exclamation-triangle text-danger fs-1 opacity-50"></i>
@@ -106,14 +104,14 @@ $this->registerJs('window.dashboardData = ['.$ativos.','.$comProblema.','.$inati
     </div>
 
     <?php
-    $totalReadings = $readingsComProblema + $readingsSemProblema;
+/*    $totalReadings = $readingsComProblema + $readingsSemProblema;
     $percentProblema = $totalReadings > 0
             ? round(($readingsComProblema / $totalReadings) * 100)
             : 0;
-    ?>
+    */?>
 
     <div class="alert alert-warning shadow-sm rounded-4">
-        <strong><?= $percentProblema ?>%</strong> das leituras apresentam problemas.
+<!--        <strong>--><?php //= $percentProblema ?><!--%</strong> das leituras apresentam problemas.-->
     </div>
 
 </div>

@@ -247,13 +247,11 @@ $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\Bo
                     ]); ?>
 
                     <div class="row g-1">
-                        <?= $form->field($detailReading, 'tecnicoID')->hiddenInput()->label(false) ?>
-                        <?= $form->field($detailReading, 'meterID')->hiddenInput()->label(false) ?>
                         <div class="col-md-2">
                             <?= $form->field($detailReading, 'id')->textInput(['readonly' => true, 'id' => 'detailReadingId'])->label('Referência') ?>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Username</label>
+                            <label class="form-label">Criador</label>
                             <input type="text" class="form-control" value="<?= htmlspecialchars($technician->username ?? '') ?>" readonly>
                         </div>
                         <div class="col-md-5">

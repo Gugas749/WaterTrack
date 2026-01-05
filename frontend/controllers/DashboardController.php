@@ -49,24 +49,10 @@ class DashboardController extends Controller
         if (!$isTechnician) {
             $readingQuery->andWhere(['meter.userID' => $userId]);
         }
-
-
-        $readingsComProblema = (clone $readingQuery)
-            ->andWhere(['meterreading.problemState' => 1])
-            ->count();
-
-        $readingsSemProblema = (clone $readingQuery)
-            ->andWhere(['meterreading.problemState' => 0])
-            ->count();
-
         return $this->render('index', [
             'ativos' => $ativos,
             'comProblema' => $comProblema,
             'inativos' => $inativos,
-
-            // 🔥 novos dados
-            'readingsComProblema' => $readingsComProblema,
-            'readingsSemProblema' => $readingsSemProblema,
 
             'isTechnician' => $isTechnician,
         ]);

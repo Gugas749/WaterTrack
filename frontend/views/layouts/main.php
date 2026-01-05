@@ -43,7 +43,7 @@ $showSidebar = !in_array($route, [
                         ['label' => '🧮 Contadores', 'url' => ['/meter/index']],
                         ['label' => '📖 Leituras', 'url' => ['/reading/index']],
                         ['label' => '📈 Relatório', 'url' => ['/report/index']],
-                        ['label' => '⚙️ Definições', 'url' => ['/dashboard/settings']],
+                        ['label' => '⚙️ Definições', 'url' => ['/settings/index']],
                 ],
                 'encodeLabels' => false
         ]) ?>
