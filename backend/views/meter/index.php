@@ -370,14 +370,6 @@ $statusText = match ($meter->state ?? null) {
                     <?php \yii\widgets\ActiveForm::end(); ?>
                 </div>
             </div>
-
-            <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    document.getElementById('overlay').style.display = 'block';
-                    document.getElementById('detailPanel').style.display = 'block';
-                    document.body.style.overflow = 'hidden';
-                });
-            </script>
         <?php endif; ?>
         <!-- OVERLAY -->
         <div id="overlay"></div>
@@ -385,31 +377,113 @@ $statusText = match ($meter->state ?? null) {
 </div>
 
 <script>
-    $(document).on('pjax:end', function() {
-        // Update state dropdown colors after PJAX reload
-        $('.meter-state-dropdown').each(function() {
-            const val = $(this).val();
-            const classes = { 1:'text-success', 2:'text-warning', 0:'text-danger' };
-            $(this).removeClass('text-success text-warning text-danger')
-                .addClass(classes[val] || 'text-muted');
+    document.addEventListener('click', function(event) {
+        const target = event.target;
+
+        // Abrir Right Panel
+        if (target.closest('[data-toggle="right-panel"]')) {
+            const panel = document.getElementById('rightPanel');
+            if (!panel) return;
+
+            let overlay = document.getElementById('overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'overlay';
+                overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:1049;
+                display:none;
+            `;
+                document.body.appendChild(overlay);
+            }
+
+            panel.style.display = 'block';
+            panel.style.position = 'fixed';
+            panel.style.top = '0';
+            panel.style.right = '0';
+            panel.style.height = '100%';
+            panel.style.width = '400px';
+            panel.style.zIndex = '1050';
+            panel.style.backgroundColor = '#fff';
+
+            overlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            return;
+        }
+
+        // Fechar Right Panel ou Detail Panel
+        if (target.closest('#closeRightPanel') || target.closest('.closeDetailPanel') || target.closest('#overlay')) {
+            const rightPanel = document.getElementById('rightPanel');
+            const detailPanel = document.getElementById('detailPanel');
+            const overlay = document.getElementById('overlay');
+
+            if (rightPanel) rightPanel.style.display = 'none';
+            if (detailPanel) detailPanel.style.display = 'none';
+            if (overlay) overlay.style.display = 'none';
+            document.body.style.overflow = '';
+            return;
+        }
+    });
+
+    // Mostrar Detail Panel automaticamente se existir $detailMeter
+    document.addEventListener('DOMContentLoaded', () => {
+        const detailPanel = document.getElementById('detailPanel');
+        if (detailPanel) {
+            let overlay = document.getElementById('overlay');
+            if (!overlay) {
+                overlay = document.createElement('div');
+                overlay.id = 'overlay';
+                overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:1049;
+            `;
+                document.body.appendChild(overlay);
+            }
+
+            overlay.style.display = 'block';
+            detailPanel.style.display = 'block';
+            detailPanel.style.position = 'fixed';
+            detailPanel.style.top = '50%';
+            detailPanel.style.left = '50%';
+            detailPanel.style.transform = 'translate(-50%, -50%)';
+            detailPanel.style.zIndex = '1050';
+            document.body.style.overflow = 'hidden';
+        }
+    });
+
+    // Atualizar cores dos dropdowns de estado após PJAX
+    document.addEventListener('pjax:end', () => {
+        document.querySelectorAll('select[name="state"]').forEach(select => {
+            const val = select.value;
+            const classes = {1: 'text-success', 2: 'text-warning', 0: 'text-danger'};
+            select.classList.remove('text-success', 'text-warning', 'text-danger');
+            select.classList.add(classes[val] || 'text-muted');
         });
 
-        // Show flash messages
-        $('#flash-container .toast').each(function() {
-            const toastEl = this;
+        // Mostrar toasts
+        document.querySelectorAll('#flash-container .toast').forEach(toastEl => {
             const toast = new bootstrap.Toast(toastEl, { delay: 5000 });
             toast.show();
         });
     });
 
-    $(document).on('change', 'select[name="state"]', function() {
-        const val = $(this).val();
-        const classes = {
-            1: 'text-success',
-            2: 'text-warning',
-            0: 'text-danger'
-        };
-        $(this).removeClass('text-success text-warning text-danger')
-            .addClass(classes[val] || 'text-muted');
+    // Atualizar cor ao alterar dropdown de estado
+    document.querySelectorAll('select[name="state"]').forEach(select => {
+        select.addEventListener('change', () => {
+            const val = select.value;
+            const classes = {1: 'text-success', 2: 'text-warning', 0: 'text-danger'};
+            select.classList.remove('text-success', 'text-warning', 'text-danger');
+            select.classList.add(classes[val] || 'text-muted');
+        });
     });
 </script>

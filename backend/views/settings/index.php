@@ -14,12 +14,6 @@ $this->title = 'Configurações';
 
                 <h5 class="mb-4 fw-semibold">Minhas Informações</h5>
 
-                <div class="text-center mb-4">
-                    <div class="profile-avatar mx-auto">
-                        <i class="bi bi-person-circle" style="font-size:60px;"></i>
-                    </div>
-                </div>
-
                 <?php $form = ActiveForm::begin([
                         'id' => 'profile-form',
                         'options' => ['autocomplete' => 'off'],
