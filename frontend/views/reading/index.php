@@ -176,13 +176,13 @@ $addReading = new Meterreading();
 
                     <div class="row g-1">
                         <div class="col-md-2">
-                            <?= $form->field($detailReading, 'id')->textInput(['readonly' => true])->label('Referência') ?>
+                            <?= $form->field($detailReading, 'id')->textInput(['disabled' => true])->label('Referência') ?>
                         </div>
                         <div class="col-md-4">
                             <?= $form->field($detailReading, 'technicianName')
                                     ->textInput([
                                             'value' => $technician->username ?? '',
-                                            'readonly' => true
+                                            'disabled' => true
                                     ])
                                     ->label('Criador da leitura') ?>
                         </div>
@@ -191,7 +191,7 @@ $addReading = new Meterreading();
                             <?= $form->field($detailReading, 'meterAddress')
                                     ->textInput([
                                             'value' => $detailReading->meter->address ?? '',
-                                            'readonly' => true
+                                            'disabled' => true
                                     ])
                                     ->label('Morada do Contador') ?>
                         </div>
@@ -206,7 +206,7 @@ $addReading = new Meterreading();
                             <?= $form->field($detailReading, 'waterPressure')->textInput()->label('Pressão da Água') ?>
                         </div>
                         <div class="col-md-3">
-                            <?= $form->field($detailReading, 'date')->textInput(['readonly' => true])->label('Data') ?>
+                            <?= $form->field($detailReading, 'date')->textInput(['disabled' => true])->label('Data') ?>
                         </div>
                     </div>
 

@@ -248,7 +248,7 @@ $measureUnityOptions = [
                     <div class="row g-2">
                         <div class="col-md-3">
                             <label class="form-label">Referência</label>
-                            <input class="form-control" readonly value="<?= Html::encode($detailMeter->id) ?>">
+                            <input class="form-control" disabled value="<?= Html::encode($detailMeter->id) ?>">
                         </div>
 
                         <div class="col-md-3">
@@ -325,12 +325,12 @@ $measureUnityOptions = [
                     <div class="row g-2 mb-4">
                         <div class="col-md-4">
                             <label class="form-label">Data de Instalação</label>
-                            <input class="form-control" readonly value="<?= Html::encode($detailMeter->instalationDate) ?>">
+                            <input class="form-control" disabled value="<?= Html::encode($detailMeter->instalationDate) ?>">
                         </div>
 
                         <div class="col-md-4">
                             <label class="form-label">Data de Desativação</label>
-                            <input class="form-control" readonly value="<?= Html::encode($detailMeter->shutdownDate) ?>">
+                            <input class="form-control" disabled value="<?= Html::encode($detailMeter->shutdownDate) ?>">
                         </div>
                     </div>
 

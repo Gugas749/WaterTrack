@@ -31,7 +31,7 @@ $showSidebar = !in_array($route, [
 <?php $this->beginBody() ?>
 
 <?php if ($showSidebar): ?>
-    <div class="sidebar">
+    <div class="sidebar" style="z-index: 2;">
         <div class="logo">
             <?= Html::a('💧 WaterTrack', Url::to(['/dashboard/index'])) ?>
         </div>
@@ -72,15 +72,14 @@ $showSidebar = !in_array($route, [
     </div>
 <?php endif; ?>
 
-<div class="main-content" style="<?= $showSidebar ? '' : 'margin-left:0; max-width:600px; margin:auto; padding-top:80px;' ?>">
-    <?php if ($showSidebar): ?>
-    <?php endif; ?>
+<div class="main-wrapper d-flex flex-column" style="min-height:100vh;">
+    <div class="main-content flex-grow-1" style="<?= $showSidebar ? '' : 'margin-left:0; max-width:600px; margin:auto; padding-top:80px;' ?>">
+        <?= $content ?>
+    </div>
 
-    <?= $content ?>
-
     <?php if ($showSidebar): ?>
-        <footer>
-            &copy; WaterTrack <?= date('Y') ?> | Powered by Yii2
+        <footer class="mt-auto text-center py-2" style="background:#f8f9fa; font-size:14px;">
+            WaterTrack <?= date('Y') ?> | Powered by Yii2
         </footer>
     <?php endif; ?>
 </div>
