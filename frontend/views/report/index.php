@@ -223,21 +223,119 @@ $stateClasses = [
     <div id="overlay"></div>
 
 
-    <!-- Scripts -->
     <script>
-        const overlay = document.getElementById('overlay');
-        const rightPanel = document.getElementById('rightPanel');
-        const openBtn = document.querySelector('[data-toggle="right-panel"]');
-        const closeBtn = document.getElementById('closeRightPanel');
+        document.addEventListener('click', function(event) {
+            const target = event.target;
 
-        if (openBtn) openBtn.onclick = () => { rightPanel.style.display='block'; overlay.style.display='block'; document.body.style.overflow='hidden'; };
-        if (closeBtn) closeBtn.onclick = () => { rightPanel.style.display='none'; overlay.style.display='none'; document.body.style.overflow='auto'; };
-        overlay.onclick = () => { if (rightPanel.style.display==='block') { rightPanel.style.display='none'; overlay.style.display='none'; document.body.style.overflow='auto'; } };
+            // --- Abrir Right Panel (Novo Relatório) ---
+            if (target.closest('[data-toggle="right-panel"]')) {
+                const panel = document.getElementById('rightPanel');
+                if (!panel) return;
 
-        const closeDetailButtons = document.querySelectorAll('.closeDetailPanel');
-        closeDetailButtons.forEach(btn => btn.onclick = () => window.location.href='<?= Url::to(['report/index']) ?>');
+                let overlay = document.getElementById('overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'overlay';
+                    overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:999;
+                display:none;
+            `;
+                    document.body.appendChild(overlay);
+                }
 
-        if (document.getElementById('detailPanel')) { overlay.style.display='block'; document.body.style.overflow='hidden'; }
+                panel.style.display = 'block';
+                panel.style.position = 'fixed';
+                panel.style.top = '0';
+                panel.style.right = '0';
+                panel.style.height = '100%';
+                panel.style.zIndex = '1050';
+                panel.style.backgroundColor = '#fff';
+
+                overlay.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                return;
+            }
+
+            // --- Abrir Detail Panel (quando $detailProblem definido) ---
+            if (target.closest('.openDetailPanel')) {
+                const panel = document.getElementById('detailPanel');
+                if (!panel) return;
+
+                let overlay = document.getElementById('overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'overlay';
+                    overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:999;
+                display:none;
+            `;
+                    document.body.appendChild(overlay);
+                }
+
+                panel.style.display = 'block';
+                panel.style.position = 'fixed';
+                panel.style.top = '50%';
+                panel.style.left = '50%';
+                panel.style.transform = 'translate(-50%, -50%)';
+                panel.style.zIndex = '1050';
+
+                overlay.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+                return;
+            }
+
+            // --- Fechar qualquer painel via overlay ou botão fechar ---
+            if (target.closest('#closeRightPanel') || target.closest('.closeDetailPanel') || target.closest('#overlay')) {
+                const rightPanel = document.getElementById('rightPanel');
+                const detailPanel = document.getElementById('detailPanel');
+                const overlay = document.getElementById('overlay');
+
+                if (rightPanel) rightPanel.style.display = 'none';
+                if (detailPanel) detailPanel.style.display = 'none';
+                if (overlay) overlay.style.display = 'none';
+                document.body.style.overflow = '';
+                return;
+            }
+        });
+
+        // --- Se já existir $detailProblem, mostrar overlay e detailPanel automaticamente ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const detail = document.getElementById('detailPanel');
+            if (detail) {
+                detail.style.display = 'block';
+
+                let overlay = document.getElementById('overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.id = 'overlay';
+                    overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:999;
+            `;
+                    document.body.appendChild(overlay);
+                }
+                overlay.style.display = 'block';
+                document.body.style.overflow = 'hidden';
+            }
+        });
     </script>
+
 
 </div>

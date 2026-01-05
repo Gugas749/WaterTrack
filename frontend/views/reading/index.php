@@ -151,38 +151,57 @@ $addReading = new Meterreading();
             </div>
 
             <script>
-                document.addEventListener('DOMContentLoaded', () => {
-                    const openBtn = document.querySelector('[data-toggle="right-panel"]');
-                    const panel = document.getElementById('rightPanel');
-                    const closeBtn = document.getElementById('closeRightPanel');
-                    let overlay = document.getElementById('overlay');
+                document.addEventListener('click', function(event) {
+                    const target = event.target;
 
-                    if (!overlay) {
-                        overlay = document.createElement('div');
-                        overlay.id = 'overlay';
-                        overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;display:none;';
-                        document.body.appendChild(overlay);
-                    }
+                    // Abrir painel Nova Leitura
+                    if (target.closest('[data-toggle="right-panel"]')) {
+                        const panel = document.getElementById('rightPanel');
+                        if (!panel) return; // se não existir, sai
 
-                    openBtn.addEventListener('click', () => {
+                        let overlay = document.getElementById('overlay');
+                        if (!overlay) {
+                            overlay = document.createElement('div');
+                            overlay.id = 'overlay';
+                            overlay.style.cssText = `
+                position:fixed;
+                top:0;
+                left:0;
+                width:100%;
+                height:100%;
+                background:rgba(0,0,0,0.5);
+                z-index:1001;
+                display:none;
+            `;
+                            document.body.appendChild(overlay);
+                        }
+
                         panel.style.display = 'block';
+                        panel.style.position = 'fixed';
+                        panel.style.top = '0';
+                        panel.style.right = '0';
+                        panel.style.height = '100%';
+                        panel.style.zIndex = '1050';
+                        panel.style.backgroundColor = '#fff';
                         overlay.style.display = 'block';
                         document.body.style.overflow = 'hidden';
-                    });
+                        return;
+                    }
 
-                    closeBtn.addEventListener('click', () => {
-                        panel.style.display = 'none';
-                        overlay.style.display = 'none';
-                        document.body.style.overflow = '';
-                    });
+                    // Fechar painel Nova Leitura
+                    if (target.closest('#closeRightPanel') || target.closest('#overlay')) {
+                        const panel = document.getElementById('rightPanel');
+                        const overlay = document.getElementById('overlay');
 
-                    overlay.addEventListener('click', () => {
-                        panel.style.display = 'none';
-                        overlay.style.display = 'none';
+                        if (panel) panel.style.display = 'none';
+                        if (overlay) overlay.style.display = 'none';
                         document.body.style.overflow = '';
-                    });
+                        return;
+                    }
                 });
             </script>
+
+
         <?php endif; ?>
 
         <!-- Detail Panel -->
