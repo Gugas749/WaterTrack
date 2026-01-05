@@ -46,24 +46,6 @@ $this->registerJsFile('@web/js/main-index.js', ['depends' => [\yii\bootstrap5\Bo
                 </button>
             </div>
         </div>
-        <!-- ALERT -->
-        <?php foreach (Yii::$app->session->getAllFlashes() as $type => $message): ?>
-            <?php
-            $bgClass = match($type) {
-                'error' => 'bg-danger text-white',
-                'success' => 'bg-success text-white',
-                default => 'bg-info text-white',
-            };
-            ?>
-            <div class="toast show <?= $bgClass ?> ms-auto" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        <i class="bi bi-bell-fill me-2"></i><?= $message ?>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>
-        <?php endforeach; ?>
         <!-- ENTERPRISE LIST -->
         <div class="card shadow-sm border-0 mx-3" style="border-radius:16px;">
             <div class="card-body">

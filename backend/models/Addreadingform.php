@@ -21,17 +21,11 @@ class Addreadingform extends Model
     public function rules()
     {
         return [
-            [['meterID', 'tecnicoID', 'reading', 'accumulatedConsumption',
-                'waterPressure', 'date', 'readingType'], 'required'],
+            [['meterID', 'tecnicoID', 'reading', 'accumulatedConsumption', 'waterPressure', 'date'], 'required'],
 
-            [['meterID', 'tecnicoID', 'readingType', 'problemID'], 'integer'],
-
-            ['problemID', 'filter', 'filter' => function ($v) {
-                return $v === '' ? null : (int)$v;
-            }],
+            [['meterID', 'tecnicoID'], 'integer'],
 
             [['reading', 'accumulatedConsumption', 'waterPressure'], 'number'],
-            ['desc', 'string', 'max' => 255],
             ['date', 'date', 'format' => 'php:Y-m-d'],
         ];
     }
@@ -44,10 +38,7 @@ class Addreadingform extends Model
             'reading' => 'Leitura',
             'accumulatedConsumption' => 'Consumo Acumulado',
             'waterPressure' => 'Pressão de Água',
-            'desc' => 'Descrição',
             'date' => 'Data',
-            'readingType' => 'Tipo de Leitura',
-            'problemState' => 'Problema',
         ];
     }
 

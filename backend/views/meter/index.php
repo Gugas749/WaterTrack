@@ -96,26 +96,6 @@ $statusText = match ($meter->state ?? null) {
                 </button>
             </div>
         </div>
-        <!-- ALERT MESSAGES -->
-        <div id="flash-container">
-            <?php foreach (Yii::$app->session->getAllFlashes() as $type => $message): ?>
-                <?php
-                $bgClass = match($type) {
-                    'error' => 'bg-danger text-white',
-                    'success' => 'bg-success text-white',
-                    default => 'bg-info text-white',
-                };
-                ?>
-                <div class="toast show <?= $bgClass ?> ms-auto" role="alert">
-                    <div class="d-flex">
-                        <div class="toast-body">
-                            <i class="bi bi-bell-fill me-2"></i><?= $message ?>
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-                    </div>
-                </div>
-            <?php endforeach; ?>
-        </div>
         <!-- TABLE -->
         <div class="card shadow-sm border-0 mx-3" style="border-radius:16px;">
             <div class="card-body">
