@@ -182,7 +182,6 @@ $addReading = new Meterreading();
                 });
             </script>
         <?php endif; ?>
-
         <!-- Detail Panel -->
         <?php if ($detailReading): ?>
             <div id="detailPanel" class="detail-panel show bg-white shadow">

@@ -1,6 +1,6 @@
 <?php
 
-namespace app\mosquitto;
+namespace common\mosquitto;
 
 /*
  	phpMQTT
