@@ -17,7 +17,7 @@ $this->registerJsFile('@web/js/dashboard.js', ['depends' => [\yii\web\JqueryAsse
     <div class="mb-4">
         <h4 class="fw-bold text-dark">Dashboard</h4>
         <p class="text-muted mb-0">
-            <?= $isTechnician ? 'Visão geral de todos os contadores' : 'Resumo dos seus contadores' ?>
+            <?= $isTechnician ? 'Visão geral de todos os contadores da Empresa' : 'Resumo dos seus contadores' ?>
         </p>
     </div>
 
@@ -28,7 +28,7 @@ $this->registerJsFile('@web/js/dashboard.js', ['depends' => [\yii\web\JqueryAsse
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body">
                     <h6 class="text-muted">Ativos</h6>
-<!--                    <h3 class="fw-bold text-success">--><?php //= $ativos ?><!--</h3>-->
+                    <h3 class="fw-bold text-success"><?= $activeMeters ?></h3>
                 </div>
             </div>
         </div>
@@ -37,7 +37,7 @@ $this->registerJsFile('@web/js/dashboard.js', ['depends' => [\yii\web\JqueryAsse
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body">
                     <h6 class="text-muted">Com Problema</h6>
-<!--                    <h3 class="fw-bold text-warning">--><?php //= $comProblema ?><!--</h3>-->
+                    <h3 class="fw-bold text-warning"><?= $problemMeters ?></h3>
                 </div>
             </div>
         </div>
@@ -46,7 +46,7 @@ $this->registerJsFile('@web/js/dashboard.js', ['depends' => [\yii\web\JqueryAsse
             <div class="card shadow-sm border-0 rounded-4">
                 <div class="card-body">
                     <h6 class="text-muted">Inativos</h6>
-<!--                    <h3 class="fw-bold text-danger">--><?php //= $inativos ?><!--</h3>-->
+                    <h3 class="fw-bold text-danger"><?= $inactiveMeters ?></h3>
                 </div>
             </div>
         </div>
@@ -79,7 +79,7 @@ $this->registerJsFile('@web/js/dashboard.js', ['depends' => [\yii\web\JqueryAsse
                     <div>
                         <h6 class="text-muted mb-1">Leituras sem problema</h6>
                         <h3 class="fw-bold text-success mb-0">
-<!--                            --><?php //= $readingsSemProblema ?>
+<!--                            --><?php //= //$readingsSemProblema ?>
                         </h3>
                     </div>
                     <i class="fas fa-check-circle text-success fs-1 opacity-50"></i>

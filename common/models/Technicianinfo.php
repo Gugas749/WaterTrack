@@ -33,13 +33,33 @@ class Technicianinfo extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['userID', 'enterpriseID', 'profissionalCertificateNumber'], 'required'],
+            [['enterpriseID', 'profissionalCertificateNumber'], 'required',
+                'when' => function ($model) {
+                    // server-side condition
+                    return $model->user && $model->user->isTechnician();
+                },
+                'whenClient' => "function () {
+                // client-side condition
+                return $('#user-type-dropdown').val() === '1';
+            }"
+            ],
+
             [['userID', 'enterpriseID'], 'integer'],
             [['profissionalCertificateNumber'], 'string', 'max' => 100],
-            [['enterpriseID'], 'exist', 'skipOnError' => true, 'targetClass' => Enterprise::class, 'targetAttribute' => ['enterpriseID' => 'id']],
-            [['userID'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['userID' => 'id']],
+
+            [['enterpriseID'], 'exist',
+                'skipOnError' => true,
+                'targetClass' => Enterprise::class,
+                'targetAttribute' => ['enterpriseID' => 'id']
+            ],
+            [['userID'], 'exist',
+                'skipOnError' => true,
+                'targetClass' => User::class,
+                'targetAttribute' => ['userID' => 'id']
+            ],
         ];
     }
+
 
     /**
      * {@inheritdoc}

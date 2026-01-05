@@ -269,9 +269,12 @@ $statusClass = match ($user->status ?? null) {
 
                     <?php
                     $profile = $detailUser->userprofile ?? new Userprofile();
-                    $techInfos = $detailUser->technicianinfos === null ? $detailUser->technicianinfos : [];
-                    $isTechnician = !empty($techInfos);
-                    $techInfo = $isTechnician ? $techInfos[0] : null;
+                    $techInfo = null;
+                    $isTechnician = false;
+                    if($detailUser->technicianinfos !== null){
+                        $techInfo = $detailUser->technicianinfos;
+                        $isTechnician = true;
+                    }
                     $enterpriseList = ArrayHelper::map(Enterprise::find()->all(), 'id', 'name');
                     $selectedValue = $isTechnician ? '1' : '0';
                     ?>
@@ -285,7 +288,10 @@ $statusClass = match ($user->status ?? null) {
                             )->label('Tipo de Utilizador') ?>
                         </div>
                         <?php
-                        $techInfoModel = !empty($techInfos) ? $techInfos[0] : new \common\models\Technicianinfo();
+                        $techInfoModel = new \common\models\Technicianinfo();
+                        if($isTechnician){
+                            $techInfoModel = $techInfo;
+                        }
                         ?>
 
                         <div class="col-md-4 professional-field <?= $isTechnician ? '' : 'hidden' ?>">

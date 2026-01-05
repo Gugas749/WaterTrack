@@ -2,6 +2,7 @@
 
 namespace backend\controllers;
 
+use common\models\Enterprise;
 use Yii;
 use yii\web\Controller;
 use yii\filters\AccessControl;
@@ -34,6 +35,11 @@ class ReportController extends Controller
         $search = Yii::$app->request->get('q');
         $detailId = Yii::$app->request->get('id');
 
+        $detailProblem = null;
+        $detailsMeter = null;
+        $detailsEnterprise = null;
+        $detailsTechnicians = [];
+
         // Obter todos os relatórios
         $query = Meterproblem::find()->orderBy(['id' => SORT_DESC]);
 
@@ -46,22 +52,34 @@ class ReportController extends Controller
         // Obter todos os contadores para o right panel
         $meters = Meter::find()->all();
 
-        // Obter utilizadores técnicos
-        $technicianIds = Technicianinfo::find()->select('userID')->column();
-        $technicians = User::find()->where(['id' => $technicianIds])->all();
-
         // Modelo para criar novo relatório
         $model = new Meterproblem();
 
         // Detalhe do relatório, se id for fornecido
-        $detailProblem = $detailId ? Meterproblem::findOne($detailId) : null;
+        if($detailId != null || $detailId > 0){
+            $detailProblem = Meterproblem::findOne($detailId);
+            $detailsMeter = $detailProblem->meter;
+            $detailsEnterprise = Enterprise::findOne($detailsMeter->enterprise);
+
+            $technicianIds = Technicianinfo::find()->select('userID')->column();
+            $aux = User::find()->where(['id' => $technicianIds])->all();
+
+            foreach ($aux as $user) {
+                if($user->technicianinfos->enterpriseID == $detailsMeter->enterpriseID) {
+                    $detailsTechnicians = array_merge($detailsTechnicians, [$user]);
+                }
+            }
+        }
 
         return $this->render('index', [
             'reports' => $reports,
             'meters' => $meters,
             'model' => $model,
-            'technicians' => $technicians,
+            'search' => $search,
             'detailProblem' => $detailProblem,
+            'detailsMeter' => $detailsMeter,
+            'detailsEnterprise' => $detailsEnterprise,
+            'detailsTechnicians' => $detailsTechnicians,
         ]);
     }
 

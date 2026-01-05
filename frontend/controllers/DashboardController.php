@@ -32,15 +32,21 @@ class DashboardController extends Controller
         $userId = $user->id;
         $isTechnician = $user ? $user->isTechnician() : false;
 
-        $meterQuery = Meter::find();
+        $activeMeters = [];
+        $problemMeters = [];
+        $inactiveMeters = [];
 
-        if (!$isTechnician) {
-            $meterQuery->andWhere(['userID' => $userId]);
+        if($isTechnician){
+            $activeMeters = Meter::find()->andWhere(['enterpriseID' => $userId, 'state' => 1])->count();
+            $problemMeters = Meter::find()->andWhere(['enterpriseID' => $userId, 'state' => 2])->count();
+            $inactiveMeters = Meter::find()->andWhere(['enterpriseID' => $userId, 'state' => 0])->count();
+        }else{
+            $activeMeters = Meter::find()->andWhere(['userID' => $userId, 'state' => 1])->count();
+            $problemMeters = Meter::find()->andWhere(['userID' => $userId, 'state' => 2])->count();
+            $inactiveMeters = Meter::find()->andWhere(['userID' => $userId, 'state' => 0])->count();
         }
 
-        $ativos       = (clone $meterQuery)->andWhere(['state' => 1])->count();
-        $comProblema  = (clone $meterQuery)->andWhere(['state' => 2])->count();
-        $inativos     = (clone $meterQuery)->andWhere(['state' => 0])->count();
+
 
         // ===== LEITURAS (Meterreading.problemState) =====
         $readingQuery = Meterreading::find()
@@ -50,9 +56,9 @@ class DashboardController extends Controller
             $readingQuery->andWhere(['meter.userID' => $userId]);
         }
         return $this->render('index', [
-            'ativos' => $ativos,
-            'comProblema' => $comProblema,
-            'inativos' => $inativos,
+            'activeMeters' => $activeMeters,
+            'problemMeters' => $problemMeters,
+            'inactiveMeters' => $inactiveMeters,
 
             'isTechnician' => $isTechnician,
         ]);

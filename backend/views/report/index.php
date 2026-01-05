@@ -3,6 +3,7 @@ use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 use yii\widgets\ActiveForm;
+use yii\widgets\Pjax;
 
 $this->title = 'Relatórios';
 $this->params['breadcrumbs'][] = $this->title;
@@ -24,13 +25,38 @@ $stateClasses = [
 ?>
 
 <div class="container-fluid py-4 position-relative">
-
+    <?php Pjax::begin([
+            'id' => 'reportsTable',
+            'timeout' => 5000,
+            'enablePushState' => false, // important
+    ]); ?>
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold">Relatórios</h4>
-        <button class="btn btn-primary" data-toggle="right-panel">
-            <i class="fas fa-plus me-1"></i> Novo Relatório
-        </button>
+        <div class="d-flex align-items-center gap-3">
+            <!-- Search -->
+            <div class="input-group mx-5" style="width:220px;">
+                <?php $form = ActiveForm::begin([
+                        'method' => 'get',
+                        'action' => ['report/index'],
+                        'options' => ['data' => ['pjax' => true], 'class' => 'd-flex align-items-center w-100'],
+                ]); ?>
+                <input type="text" name="q"
+                       class="form-control form-control-sm ps-3 pe-5"
+                       placeholder="Search"
+                       value="<?= Html::encode($search) ?>"
+                       style="border:1px solid #e5e7eb;">
+                <button type="submit" class="input-group-text bg-transparent border-0 text-muted"
+                        style="position:absolute; right:10px; top:50%; transform:translateY(-50%);">
+                    <i class="fas fa-search"></i>
+                </button>
+                <?php ActiveForm::end(); ?>
+            </div>
+            <!-- Open Panel Button -->
+            <button class="btn btn-primary" data-toggle="right-panel">
+                <i class="fas fa-plus me-1"></i> Novo Relatório
+            </button>
+        </div>
     </div>
     <!-- ALERT MESSAGES -->
     <div id="flash-container">
@@ -98,7 +124,7 @@ $stateClasses = [
             </table>
         </div>
     </div>
-
+    <?php Pjax::end(); ?>
     <!-- Right Panel -->
     <div id="rightPanel" class="position-fixed top-0 end-0 bg-white shadow" style="width:400px; height:100%; z-index:1050; display:none; overflow-y:auto;">
         <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
@@ -118,12 +144,6 @@ $stateClasses = [
             <?= $form->field($model, 'meterID')->dropDownList(
                     ArrayHelper::map($meters, 'id', fn($m) => $m->id . ' - ' . $m->address),
                     ['prompt' => 'Selecione o contador']
-            )->label(false) ?>
-
-            <h6 class="fw-bold m-2">Técnico Atribuído</h6>
-            <?= $form->field($model, 'tecnicoID')->dropDownList(
-                    ArrayHelper::map($technicians, 'id', fn($t) => $t->id . ' - ' . $t->username),
-                    ['prompt' => 'Nenhum']
             )->label(false) ?>
 
             <h6 class="fw-bold m-2">Descrição</h6>
@@ -162,9 +182,14 @@ $stateClasses = [
                 <?= $form->field($detailProblem, 'meterID')->hiddenInput()->label(false) ?>
             </div>
 
+            <div class="mb-3">
+                <h6 class="fw-bold m-2">Empresa Atribuída</h6>
+                <input class="form-control" type="text" value="<?= $detailsEnterprise->name ?> - <?= $detailsEnterprise->address ?>" disabled>
+            </div>
+
             <h6 class="fw-bold m-2">Técnico Atribuído</h6>
             <?= $form->field($detailProblem, 'tecnicoID')->dropDownList(
-                    ArrayHelper::map($technicians, 'id', fn($t) => $t->id . ' - ' . $t->username),
+                    ArrayHelper::map($detailsTechnicians, 'id', fn($t) => $t->id . ' - ' . $t->username),
                     ['prompt' => 'Nenhum']
             )->label(false) ?>
 
