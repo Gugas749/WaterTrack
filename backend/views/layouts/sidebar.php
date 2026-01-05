@@ -45,7 +45,7 @@ $this->registerCssFile('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font
                    style="font-size: 1.2rem;"></i>
             </div>
             <div class="info">
-                <a href="#" class="d-block"><?= Html::encode(Yii::$app->user->identity->username) ?></a>
+                <a href="#" class="d-block"><?= Html::encode(Yii::$app->user->identity->username ?? '') ?></a>
             </div>
         </div>
     </div>

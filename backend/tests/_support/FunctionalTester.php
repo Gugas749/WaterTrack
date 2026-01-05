@@ -1,26 +1,19 @@
 <?php
-
 namespace backend\tests;
+
+use Codeception\Actor;
 
 /**
  * Inherited Methods
- * @method void wantToTest($text)
- * @method void wantTo($text)
- * @method void execute($callable)
- * @method void expectTo($prediction)
- * @method void verify($prediction)
- * @method void amGoingTo($argumentation)
- * @method void am($role)
- * @method void lookForwardTo($achieveValue)
- * @method void comment($description)
- * @method \Codeception\Lib\Friend haveFriend($name, $actorClass = NULL)
- *
- * @SuppressWarnings(PHPMD)
+ * @method void amOnPage($page)
+ * @method void see($text, $selector = null)
+ * @method void click($selector)
+ * @method void fillField($field, $value)
+ * @method void submitForm($selector, $params)
+ * @method void seeElement($selector)
+ * @method void dontSee($text)
  */
-class FunctionalTester extends \Codeception\Actor
+class FunctionalTester extends Actor
 {
     use _generated\FunctionalTesterActions;
-   /**
-    * Define custom actions here
-    */
 }

@@ -1,8 +1,7 @@
 <?php
 
-namespace backend\tests\functional;
-
 use backend\tests\FunctionalTester;
+
 use common\fixtures\UserFixture;
 
 /**
@@ -32,13 +31,27 @@ class LoginCest
      */
     public function loginUser(FunctionalTester $I)
     {
-        $I->amOnRoute('/dashboard/login');
-        $I->fillField('Username', 'erau');
-        $I->fillField('Password', 'password_0');
-        $I->click('login-button');
+        $I->amOnPage('/site/login');
 
-        $I->see('Logout (erau)', 'form button[type=submit]');
-        $I->dontSeeLink('Login');
-        $I->dontSeeLink('Signup');
+        $I->fillField('#loginform-username', 'admin');
+        $I->fillField('#loginform-password', '12345678');
+        $I->click('Sign In');
+
+        $I->seeInCurrentUrl('/dashboard');
+        $I->see('admin');
     }
+
+    public function loginComSucesso(FunctionalTester $I)
+    {
+        $I->amOnPage('/site/login');
+
+        $I->see('Sign in');
+        $I->fillField('#loginform-username', 'admin');
+        $I->fillField('#loginform-password', '12345678');
+        $I->click('Sign In');
+
+        $I->seeInCurrentUrl('/dashboard');
+        $I->see('admin');
+    }
+
 }
