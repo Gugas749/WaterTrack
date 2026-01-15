@@ -67,6 +67,7 @@ class UserController extends Controller
 
     public function actionCreate()
     {
+        //RBAC CHECAR PERMS
         if (!Yii::$app->user->can('createUser')) {
             throw new ForbiddenHttpException('Não tem permissão para criar utilizadores.');
         }

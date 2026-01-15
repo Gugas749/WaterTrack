@@ -2,6 +2,7 @@
 
 namespace backend\modules\api\controllers;
 
+use Yii;
 use yii\filters\auth\HttpBasicAuth;
 use yii\rest\ActiveController;
 
@@ -78,5 +79,32 @@ class MeterController extends ActiveController
             return $user;
         }
         throw new \yii\web\ForbiddenHttpException('No authentication'); //403
+    }
+
+    public function checkAccess($action, $model = null, $params = [])
+    {
+        if($this->user)
+        {
+            switch ($action) {
+                case 'index': // GETS
+                case 'view':
+                    break;
+                case 'create': // POST
+                    if(!Yii::$app->user->can('createMeter')){
+                        throw new \yii\web\ForbiddenHttpException('Não tem permissão para efetuar esta operação.');
+                    }
+                    break;
+                case 'delete': // DELETES
+                    if(!Yii::$app->user->can('deleteMeter')){
+                        throw new \yii\web\ForbiddenHttpException('Não tem permissão para efetuar esta operação.');
+                    }
+                    break;
+                case 'update': // PUT/PATCH
+                    if(!Yii::$app->user->can('updateMeter')){
+                        throw new \yii\web\ForbiddenHttpException('Não tem permissão para efetuar esta operação.');
+                    }
+                    break;
+            }
+        }
     }
 }
