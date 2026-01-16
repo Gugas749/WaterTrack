@@ -70,6 +70,7 @@ return [
                     'extraPatterns' => [
                         // USERS
                         'PUT putstatus/{id}' => 'putstatus',
+                        'GET getrole/{id}' => 'getrole',
                         // USER-PROFILE
                         'GET profile/{id}' => 'profile',
                         // TECHNICIAN-INFO

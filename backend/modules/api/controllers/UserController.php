@@ -2,6 +2,7 @@
 
 namespace backend\modules\api\controllers;
 
+use Yii;
 use yii\filters\auth\HttpBasicAuth;
 use yii\rest\ActiveController;
 
@@ -24,6 +25,23 @@ class UserController extends ActiveController
         {
             throw new \yii\web\NotFoundHttpException("Nome de user não existe");
         }
+    }
+
+    public function actionGetrole($id)
+    {
+        $user = $this->modelClass::findOne($id);
+
+        if (!$user) {
+            throw new \yii\web\NotFoundHttpException('User não encontrado.');
+        }
+
+        $roles = Yii::$app->authManager->getRolesByUser($user->id);
+        $roleName = !empty($roles) ? array_key_first($roles) : null;
+
+        return [
+            'userId' => $user->id,
+            'role' => $roleName,
+        ];
     }
 
     public function behaviors()
