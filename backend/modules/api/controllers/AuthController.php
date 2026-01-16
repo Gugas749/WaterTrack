@@ -54,8 +54,7 @@ class AuthController extends Controller
         }
 
         $profile = $user->userprofile;
-        $techInfos = $user->technicianinfos;
-        $techInfo = $techInfos[0] ?? null;
+        $techInfo = $user->technicianinfos;
 
         return [
             "success" => 0,
