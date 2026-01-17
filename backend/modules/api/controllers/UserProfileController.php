@@ -15,10 +15,6 @@ class UserProfileController extends ActiveController
         $userprofilemodel = new $this->modelClass;
         $recs = $userprofilemodel::find()->where(['userID' => $id])->one();
 
-        if (!$recs) {
-            return ['error' => 'Profile not found'];
-        }
-
         return $recs;
     }
 

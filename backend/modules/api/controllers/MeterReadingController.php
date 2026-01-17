@@ -15,10 +15,6 @@ class MeterReadingController extends ActiveController
         $model = new $this->modelClass;
         $recs = $model::find()->where(['userID' => $id])->one();
 
-        if (!$recs) {
-            return ['error' => 'Readings not found'];
-        }
-
         return $recs;
     }
 
@@ -27,10 +23,6 @@ class MeterReadingController extends ActiveController
         $model = new $this->modelClass;
         $recs = $model::find()->where(['meterID' => $id])->all();
 
-        if (!$recs) {
-            return ['error' => 'Readings not found'];
-        }
-
         return $recs;
     }
 
@@ -38,10 +30,6 @@ class MeterReadingController extends ActiveController
     {
         $model = new $this->modelClass;
         $recs = $model::find()->where(['problemID' => $id])->one();
-
-        if (!$recs) {
-            return ['error' => 'Readings not found'];
-        }
 
         return $recs;
     }
