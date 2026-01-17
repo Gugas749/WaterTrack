@@ -66,6 +66,7 @@ class AuthController extends Controller
 
                 "birthDate" => $profile->birthDate ?? null,
                 "address" => $profile->address ?? null,
+                "profileID" => $profile->id ?? null,
 
                 "enterpriseID" => $techInfo->enterpriseID ?? null,
                 "certificationNumber" => $techInfo->profissionalCertificateNumber ?? null,
