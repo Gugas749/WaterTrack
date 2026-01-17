@@ -13,7 +13,7 @@ class MeterProblemController extends ActiveController
     public function actionFromuser($id)
     {
         $userprofilemodel = new $this->modelClass;
-        $recs = $userprofilemodel::find()->where(['userID' => $id])->one();
+        $recs = $userprofilemodel::find()->where(['userID' => $id])->all();
 
         if (!$recs) {
             return ['error' => 'Problems not found'];
@@ -25,7 +25,7 @@ class MeterProblemController extends ActiveController
     public function actionFrommeter($id)
     {
         $userprofilemodel = new $this->modelClass;
-        $recs = $userprofilemodel::find()->where(['meterID' => $id])->one();
+        $recs = $userprofilemodel::find()->where(['meterID' => $id])->all();
 
         if (!$recs) {
             return ['error' => 'Problems not found'];
